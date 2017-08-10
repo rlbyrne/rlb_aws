@@ -56,6 +56,10 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
     fi
 fi
 
+# Copy previous runs from S3 (allows FHD to not recalculate everything)
+aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
+${outdir}/fhd_${version}/ --recursive --exclude "*" --include "${obs_id}*"
+
 # Run FHD
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
 eor_firstpass_versions -args $obs_id $outdir $version
@@ -63,17 +67,19 @@ eor_firstpass_versions -args $obs_id $outdir $version
 if [ $? -eq 0 ]
 then
     echo "FHD Job Finished"
-    echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
-
-    # Copy FHD outputs to S3
-    aws s3 mv ${outdir}/fhd_${version}/ \
-    s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
-    --include "${obs_id}*"
-    aws s3 mv ${outdir}/fhd_${version}/ \
-    s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
-    --include "${JOB_ID}*"
-    exit 0
+    error_mode=0
 else
     echo "Job Failed"
-    exit 1
+    error_mode=1
 fi
+
+# Move FHD outputs to S3
+echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
+aws s3 mv ${outdir}/fhd_${version}/ \
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
+--include "${obs_id}*"
+aws s3 mv ${outdir}/fhd_${version}/ \
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
+--include "${JOB_ID}*"
+
+exit $error_mode
