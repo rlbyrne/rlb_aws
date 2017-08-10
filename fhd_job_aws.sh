@@ -24,7 +24,7 @@ then
 fi
 
 metafits_exists=$(aws s3 ls ${metafits_loc}/${obs_id}.metafits)
-if [ -z "$metafits_exists"]
+if [ -z "$metafits_exists" ]
 then
     >&2 echo "ERROR: metafits file not found"
     echo "Job Failed"
@@ -32,8 +32,8 @@ then
 fi
 
 # Copy uvfits and metafits files from S3
-aws s3 cp ${uvfits_loc}/${obs_id}.uvfits /uvfits
-aws s3 cp ${metafits_loc}/${obs_id}.metafits /uvfits
+aws s3 cp ${uvfits_loc}/${obs_id}.uvfits /uvfits/${obs_id}.uvfits
+aws s3 cp ${metafits_loc}/${obs_id}.metafits /uvfits/${obs_id}.metafits
 
 # Verify that uvfits and metafits were successfully copied from S3
 if [ ! -f "/uvfits/${obs_id}.uvfits" ]
@@ -51,7 +51,7 @@ then
 fi
 
 # Run FHD
-/usr/local/bin/idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
+idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
 eor_firstpass_versions -args $obs_id $outdir $version
 
 # Copy FHD outputs to S3
