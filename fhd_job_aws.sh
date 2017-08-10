@@ -10,12 +10,9 @@ echo TASKID ${SGE_TASK_ID}
 obs_id=$(pull_args.py $*)
 echo OBSID ${obs_id}
 
-uvfits_loc=$(s3://mwapublic/uvfits/5.1)
-metafits_loc=$(s3://mwatest/metafits/5.1)
-
 # Check if the uvfits and metafits files exist on S3; error and exit if they
 # are not found
-uvfits_exists=$(aws s3 ls ${uvfits_loc}/${obs_id}.uvfits)
+uvfits_exists=$(aws s3 ls s3://mwapublic/uvfits/5.1/${obs_id}.uvfits)
 if [ -z "$uvfits_exists" ]
 then
     >&2 echo "ERROR: uvfits file not found"
@@ -23,7 +20,7 @@ then
     exit 1
 fi
 
-metafits_exists=$(aws s3 ls ${metafits_loc}/${obs_id}.metafits)
+metafits_exists=$(aws s3 ls s3://mwatest/metafits/5.1/${obs_id}.metafits)
 if [ -z "$metafits_exists" ]
 then
     >&2 echo "ERROR: metafits file not found"
@@ -32,8 +29,9 @@ then
 fi
 
 # Copy uvfits and metafits files from S3
-aws s3 cp ${uvfits_loc}/${obs_id}.uvfits /uvfits/${obs_id}.uvfits
-aws s3 cp ${metafits_loc}/${obs_id}.metafits /uvfits/${obs_id}.metafits
+aws s3 cp s3://mwapublic/uvfits/5.1/${obs_id}.uvfits /uvfits/${obs_id}.uvfits
+aws s3 cp s3://mwatest/metafits/5.1/${obs_id}.metafits \
+/uvfits/${obs_id}.metafits
 
 # Verify that uvfits and metafits were successfully copied from S3
 if [ ! -f "/uvfits/${obs_id}.uvfits" ]
