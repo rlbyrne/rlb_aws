@@ -71,9 +71,6 @@ done
 #Manual shift to the next flag.
 shift $(($OPTIND - 1))
 
-#Specify the FHD file path that is used in IDL
-FHDpath=$('~/MWA/FHD/')
-
 #Throw error if no obs_id file.
 if [ -z ${obs_file_name} ]; then
    echo "Need to specify a full filepath to a list of viable observation ids."
@@ -113,11 +110,11 @@ if [ -z ${version} ]; then
    exit 1
 fi
 
-if grep -q \'${version}\' ${FHDpath}Observations/eor_firstpass_versions.pro
+if grep -q \'${version}\' ~/MWA/FHD/Observations/eor_firstpass_versions.pro
 then
     echo Using version $version
 else
-    echo Version \'${version}\' was not found in ${FHDpath}Observations/eor_firstpass_versions.pro
+    echo Version \'${version}\' was not found in ~/MWA/FHD/Observations/eor_firstpass_versions.pro
     exit 1
 fi
 
