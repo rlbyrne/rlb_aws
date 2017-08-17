@@ -72,7 +72,7 @@ done
 shift $(($OPTIND - 1))
 
 #Specify the FHD file path that is used in IDL
-FHDpath=$(idl -e 'print,rootdir("fhd")') ### NOTE this only works if idlstartup doesn't have any print statements (e.g. healpix check)
+FHDpath=$('~/MWA/FHD/')
 
 #Throw error if no obs_id file.
 if [ -z ${obs_file_name} ]; then
@@ -212,7 +212,7 @@ done
 nobs=${#good_obs_list[@]}
 
 #Make the qsub command given the input parameters.
-message=$(qsub ${hold_str} -p $priority -P FHD -l h_vmem=$mem,h_stack=512k,h_rt=${wallclock_time} -V -v nslots=$nslots,outdir=$outdir,version=$version,thresh=$thresh -e ${outdir}/fhd_${version}/grid_out -o ${outdir}/fhd_${version}/grid_out -t 1:${nobs} -pe chost $nslots -sync y ${FHDpath}Observations/fhd_job_aws.sh ${good_obs_list[@]})
+message=$(qsub ${hold_str} -p $priority -P FHD -l h_vmem=$mem,h_stack=512k,h_rt=${wallclock_time} -V -v nslots=$nslots,outdir=$outdir,version=$version,thresh=$thresh -e ${outdir}/fhd_${version}/grid_out -o ${outdir}/fhd_${version}/grid_out -t 1:${nobs} -pe chost $nslots -sync y ~/MWA/rlb_aws/fhd_job_aws.sh ${good_obs_list[@]})
 #
 #Run the command
 message=($message)
