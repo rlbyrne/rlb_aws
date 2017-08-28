@@ -143,8 +143,8 @@ fi
 if [ -z ${hold} ]; then hold_str=""; else hold_str="-hold_jid ${hold}"; fi
 
 #Make directory if it doesn't already exist
-mkdir -p ${outdir}/fhd_${version}
-mkdir -p ${outdir}/fhd_${version}/grid_out
+sudo mkdir -p ${outdir}/fhd_${version}
+sudo mkdir -p ${outdir}/fhd_${version}/grid_out
 echo Output located at ${outdir}/fhd_${version}
 
 #Read the obs file and put into an array, skipping blank lines if they exist
