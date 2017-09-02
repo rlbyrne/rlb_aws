@@ -44,7 +44,7 @@ sudo bash ~/IDL_iso/install_unix.sh #requires user input
 sudo mv ~/license.dat /usr/local/exelis/license/license.dat
 sudo bash /usr/local/exelis/idl82/bin/lmgrd -c /usr/local/exelis/license/license.dat #hangs at the end, requires user input
 
-sudo mkdir ~/MWA
+sudo mkdir -m 777 ~/MWA
 sudo unzip ~/astron.zip -d ~/MWA/astron
 sudo unzip ~/coyoteprograms.zip -d ~/MWA/coyote
 sudo mv ~/MWA_Tools ~/MWA/MWA_Tools
@@ -60,6 +60,8 @@ echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/FHD"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/MWA_Tools"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"/usr/local/exelis/idl82/lib"' >> ~/.bashrc
 
+sudo mkdir -m 777 /FHD_output
+sudo mkdir -m 777 /uvfits
 
 #cleanup
 sudo bash /usr/local/sbin/ami_cleanup.sh
