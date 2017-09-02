@@ -53,11 +53,12 @@ sudo mv ~/rlb_aws ~/MWA/rlb_aws
 
 # 8/30 RERUN THESE!!!:
 echo 'export PATH="/home/ubuntu/MWA/rlb_aws:$PATH"' >> ~/.bashrc
+echo 'export PATH="/home/ubuntu/MWA/FHD:$PATH"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/astron"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/coyote"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/FHD"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/MWA_Tools"' >> ~/.bashrc
-source ~/.bashrc
+echo 'export IDL_PATH=$IDL_PATH:+"/usr/local/exelis/idl82/lib"' >> ~/.bashrc
 
 
 #cleanup
