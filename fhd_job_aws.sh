@@ -10,6 +10,24 @@ echo TASKID ${SGE_TASK_ID}
 obs_id=$(pull_args.py $*)
 echo OBSID ${obs_id}
 
+#strip the last / if present in output directory filepath
+outdir=${outdir%/}
+echo Using output directory: $outdir
+
+#create output directory with full permissions
+if [ -d "$outdir" ]; then
+    sudo chmod -R 777 $outdir
+else
+    sudo mkdir -m 777 $outdir
+fi
+
+#create uvfits download location with full permissions
+if [ -d /uvfits ]; then
+    sudo chmod -R 777 /uvfits
+else
+    sudo mkdir -m 777 /uvfits
+fi
+
 # Check if the uvfits file exists locally; if not, download it from S3
 if [ ! -f "/uvfits/${obs_id}.uvfits" ]; then
 
