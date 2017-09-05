@@ -62,7 +62,7 @@ ${outdir}/fhd_${version}/ --recursive --exclude "*" --include "${obs_id}*"
 
 # Run FHD
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
-eor_firstpass_versions -args $obs_id $outdir $version
+eor_firstpass_versions -args $obs_id $outdir $version || :
 
 if [ $? -eq 0 ]
 then
