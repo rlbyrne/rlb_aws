@@ -76,7 +76,7 @@ fi
 
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
 aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
-${outdir}/fhd_${version}/ --recursive --exclude "*" --include "${obs_id}*"
+${outdir}/fhd_${version}/ --recursive
 
 # Run FHD
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
@@ -94,10 +94,8 @@ fi
 # Move FHD outputs to S3
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 aws s3 mv ${outdir}/fhd_${version}/ \
-s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
---include "${obs_id}*"
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive
 aws s3 mv ${outdir}/fhd_${version}/ \
-s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
---include "${JOB_ID}*"
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive
 
 exit $error_mode
