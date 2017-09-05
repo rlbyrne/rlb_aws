@@ -22,7 +22,7 @@ if [ ! -f "/uvfits/${obs_id}.uvfits" ]; then
     fi
 
     # Download uvfits from S3
-    aws s3 cp s3://mwapublic/uvfits/5.1/${obs_id}.uvfits \
+    sudo aws s3 cp s3://mwapublic/uvfits/5.1/${obs_id}.uvfits \
     /uvfits/${obs_id}.uvfits
 
     # Verify that the uvfits downloaded correctly
@@ -45,7 +45,7 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
     fi
 
     # Download metafits from S3
-    aws s3 cp s3://mwatest/metafits/5.1/${obs_id}.metafits \
+    sudo aws s3 cp s3://mwatest/metafits/5.1/${obs_id}.metafits \
     /uvfits/${obs_id}.metafits
 
     # Verify that the metafits downloaded correctly
