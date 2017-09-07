@@ -21,8 +21,8 @@ sudo apt-get -y install imagemagick
 #FHD
 #rlb_aws
 #Healpix_3.20_2014Dec05.tar.gz
-aws s3 cp s3://mwatest/FHD_install.tar ~
-tar -xvf ~/FHD_install.tar
+aws s3 cp s3://mwatest/FHD_install.tar.gz ~
+tar -xvf ~/FHD_install.tar.gz
 
 
 #install Miniconda
