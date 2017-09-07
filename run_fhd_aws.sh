@@ -16,9 +16,6 @@
 # ending_obs (-e 1061323008) which is defaulted to the ending obsid of the
 # specified file
 # outdir (-o /path/to/output/directory) which is defaulted to /fhd
-# priority (-p -10) which is defaulted to zero but can range from -20 (higher
-# priority) to 20 (lower priority)
-# wallclock_time (-w 08:00:00) which is defaulted to 4 hours
 # nslots (-n 10) which is defaulted to 10
 # mem (-m 4G) which is defaulted to 4 Gigabytes per slot
 # thresh (-t 1) which is defaulted to 1 to tell the code to not look for a
@@ -53,15 +50,12 @@ do
         o) outdir=$OPTARG;;		#output directory for FHD output folder
         v) version=$OPTARG;;		#FHD folder name and case for eor_firstpass_versions
 					#Example: nb_foo creates folder named fhd_nb_foo
-        p) priority=$OPTARG;;		#priority level for grid engine qsub
-	w) wallclock_time=$OPTARG;;	#Time for execution in grid engine
 	n) nslots=$OPTARG;;		#Number of slots for grid engine
 	m) mem=$OPTARG;;		#Memory per core for grid engine
 	t) thresh=$OPTARG;;		#Wedge threshold to use to determine whether or not to run
-        h) hold=$OPTARG;;               #Hold for a job to finish before running.
 	\?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
-	    echo "-v (version input for FHD), -p (priority in grid engine), -w (wallclock time in grid engine), -n (number of slots to use),"
-	    echo "-m (memory per core for grid engine), -t (wedge threshold to run on), and -h (jobid to hold on)."
+	    echo "-v (version input for FHD),  -n (number of slots to use),"
+	    echo "-m (memory per core for grid engine), -t (wedge threshold to run on)."
 	    exit 1;;
 	:) echo "Missing option argument for input flag"
 	   exit 1;;
@@ -96,7 +90,7 @@ fi
 #Set default output directory if one is not supplied and update user
 if [ -z ${outdir} ]
 then
-    outdir=/fhd_outputs
+    outdir=/FHD_output
     echo Using default output directory: $outdir
 else
     #strip the last / if present in output directory filepath
@@ -118,33 +112,14 @@ else
     exit 1
 fi
 
-#Default priority if not set.
-if [ -z ${priority} ]; then
-    priority=0
-fi
-#Set typical wallclock_time for standard FHD firstpass if not set.
-if [ -z ${wallclock_time} ]; then
-    wallclock_time=04:00:00
-fi
 #Set typical slots needed for standard FHD firstpass if not set.
 if [ -z ${nslots} ]; then
     nslots=10
 fi
-#Set typical memory needed for standard FHD firstpass if not set.
-if [ -z ${mem} ]; then
-    mem=4G
-fi
-if [ -z ${thresh} ]; then
-    # if thresh is not set, set it to -1 which will cause it to not check for a window power
-    thresh=-1
-fi
 
-# create hold string
-if [ -z ${hold} ]; then hold_str=""; else hold_str="-hold_jid ${hold}"; fi
 
 #Make directory if it doesn't already exist
-sudo mkdir -p ${outdir}/fhd_${version}/grid_out
-sudo chmod -R a+w ${outdir}/fhd_${version}/grid_out
+sudo mkdir -p -m 777 ${outdir}/fhd_${version}/grid_out
 echo Output located at ${outdir}/fhd_${version}
 
 #Read the obs file and put into an array, skipping blank lines if they exist
@@ -201,30 +176,9 @@ done
 #######End of gathering the input arguments and applying defaults if necessary
 
 
-
-
 #######Submit the firstpass job and wait for output
 
-#Find the number of obsids to run in array
-nobs=${#good_obs_list[@]}
-
-#Make the qsub command given the input parameters.
-message=$(qsub ${hold_str} -p $priority -l h_vmem=$mem,h_stack=512k,h_rt=${wallclock_time} -V -v nslots=$nslots,outdir=$outdir,version=$version,thresh=$thresh -e ${outdir}/fhd_${version}/grid_out -o ${outdir}/fhd_${version}/grid_out -t 1:${nobs} -sync y /home/ubuntu/MWA/rlb_aws/fhd_job_aws.sh ${good_obs_list[@]})
-
-#Run the command
-message=($message)
-
-#Gather the grid engine id from the job for later use
-id=`echo ${message[2]} | cut -f1 -d"."`
-
-########End of submitting the firstpass job and waiting for output
-
-
-
-########Check the firstpass run
-
-#Check that output location is not running out of space
-if df -h $outdir | awk '{print $4}' | grep M -q; then
-   echo There is only "$(df -h $outdir | awk '{print $4}' | grep M)" space left on disk. Exiting
-   exit 1
-fi
+for obs_id in "${obs_id_array[@]}"
+do
+   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version} -e ~/grid_out -o ~/grid_out -pe smp ${nslots} -sync y ~/MWA/rlb_aws/fhd_job_aws.sh $obs_id &
+done

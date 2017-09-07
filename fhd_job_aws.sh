@@ -97,5 +97,9 @@ aws s3 mv ${outdir}/fhd_${version}/ \
 s3://mwatest/diffuse_survey/fhd_${version}/ --recursive
 aws s3 mv ${outdir}/fhd_${version}/ \
 s3://mwatest/diffuse_survey/fhd_${version}/ --recursive
+aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
+s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID}
+aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
+s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID}
 
 exit $error_mode

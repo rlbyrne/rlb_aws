@@ -8,6 +8,7 @@ sudo apt-get -y install python-pip python-dev build-essential
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv
 sudo pip install --upgrade cfncluster
+sudo apt-get -y install imagemagick
 
 
 #download the following from S3:
@@ -19,6 +20,7 @@ sudo pip install --upgrade cfncluster
 #MWA_Tools
 #FHD
 #rlb_aws
+#Healpix_3.20_2014Dec05.tar.gz
 aws s3 cp s3://mwatest/FHD_install.tar ~
 tar -xvf FHD_install.tar
 
@@ -50,8 +52,8 @@ sudo unzip ~/coyoteprograms.zip -d ~/MWA/coyote
 sudo mv ~/MWA_Tools ~/MWA/MWA_Tools
 sudo mv ~/FHD ~/MWA/FHD
 sudo mv ~/rlb_aws ~/MWA/rlb_aws
+tar -xvf ~/Healpix_3.20_2014Dec05.tar.gz -C ~/MWA
 
-# 8/30 RERUN THESE!!!:
 echo 'export PATH="/home/ubuntu/MWA/rlb_aws:$PATH"' >> ~/.bashrc
 echo 'export PATH="/home/ubuntu/MWA/FHD:$PATH"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/astron"' >> ~/.bashrc
@@ -59,9 +61,12 @@ echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/coyote"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/FHD"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/MWA_Tools"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"/usr/local/exelis/idl82/lib"' >> ~/.bashrc
+echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/Healpix_3.20/src/idl"' >> ~/.bashrc #rerun this
+source ~/.bashrc
 
 sudo mkdir -m 777 /FHD_output
 sudo mkdir -m 777 /uvfits
+sudo mkdir -m 777 ~/grid_out
 
 #cleanup
 sudo bash /usr/local/sbin/ami_cleanup.sh
