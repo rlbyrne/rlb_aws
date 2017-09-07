@@ -5,7 +5,7 @@
 # RUN_FHD_AWS.SH
 #
 # Top level script to run a list of observation IDs through FHD (deconvolution
-# or firstpass) on AWS and check the status of resulting FHD outputs.
+# or firstpass) on AWS.
 #
 # Required input arguments are obs_file_name (-f /path/to/obsfile) and version
 # (-v yourinitials_jackknife_test)
@@ -15,18 +15,11 @@
 # the specified file
 # ending_obs (-e 1061323008) which is defaulted to the ending obsid of the
 # specified file
-# outdir (-o /path/to/output/directory) which is defaulted to /fhd
+# outdir (-o /path/to/output/directory) which is defaulted to /FHD_output
 # nslots (-n 10) which is defaulted to 10
-# mem (-m 4G) which is defaulted to 4 Gigabytes per slot
-# thresh (-t 1) which is defaulted to 1 to tell the code to not look for a
-# threshold from wedge statistics.
 #
-# WARNING!
-# Terminal will hang as it waits for jobs to finish, and closing the termianal # will kill any remaining jobs! To run in the background, run:
-# nohup ./pipe_dream.sh -f /path/to/obsfile -v yourinitials_jackknife_test > /path/to/your/output/log/file.txt &
-#
-# This is adapted from PIPE_DREAM.SH for running FHD on MIT (written by N.
-# Barry)
+# This is adapted by R. Byrne from PIPE_DREAM.SH for running FHD on MIT
+# (written by N. Barry)
 ####################################################
 
 #Clear input parameters
@@ -35,8 +28,6 @@ unset starting_obs
 unset ending_obs
 unset outdir
 unset version
-unset resubmit_list
-unset resubmit_index
 
 #######Gathering the input arguments and applying defaults if necessary
 
@@ -47,15 +38,12 @@ do
 	f) obs_file_name="$OPTARG";;	#text file of observation id's
 	s) starting_obs=$OPTARG;;	#starting observation in text file for choosing a range
 	e) ending_obs=$OPTARG;;		#ending observation in text file for choosing a range
-        o) outdir=$OPTARG;;		#output directory for FHD output folder
-        v) version=$OPTARG;;		#FHD folder name and case for eor_firstpass_versions
-					#Example: nb_foo creates folder named fhd_nb_foo
+    o) outdir=$OPTARG;;		#output directory for FHD output folder
+    v) version=$OPTARG;;		#FHD folder name and case for eor_firstpass_versions
+		#Example: nb_foo creates folder named fhd_nb_foo
 	n) nslots=$OPTARG;;		#Number of slots for grid engine
-	m) mem=$OPTARG;;		#Memory per core for grid engine
-	t) thresh=$OPTARG;;		#Wedge threshold to use to determine whether or not to run
 	\?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
-	    echo "-v (version input for FHD),  -n (number of slots to use),"
-	    echo "-m (memory per core for grid engine), -t (wedge threshold to run on)."
+	    echo "-v (version input for FHD),  -n (number of slots to use)."
 	    exit 1;;
 	:) echo "Missing option argument for input flag"
 	   exit 1;;
@@ -176,7 +164,7 @@ done
 #######End of gathering the input arguments and applying defaults if necessary
 
 
-#######Submit the firstpass job and wait for output
+#######Submit the firstpass jobs and wait for output
 
 for obs_id in "${obs_id_array[@]}"
 do
