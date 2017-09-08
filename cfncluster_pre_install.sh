@@ -3,7 +3,7 @@
 #basic installations and updates:
 sudo apt-get -y update
 sudo apt-get -y install awscli
-aws configure <<< $'AKIAIBZCNKF2RGOPI4GA\n3mu+g/1ubVsBDuikYzEUbcLkxQTpGtMC2fzTt7eg\nus-east-1\n\n' #inputs AWS Access Key, AWS Secret Access Key, Default region name, and Default ouput format
+aws configure
 sudo apt-get -y install python-pip python-dev build-essential
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv
