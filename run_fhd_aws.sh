@@ -166,7 +166,7 @@ done
 
 #######Submit the firstpass jobs and wait for output
 
-for obs_id in "${obs_id_array[@]}"
+for obs_id in "${good_obs_list[@]}"
 do
    qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version} -e ~/grid_out/ -o ~/grid_out/ -pe smp ${nslots} -sync y ~/MWA/rlb_aws/fhd_job_aws.sh $obs_id &
 done
