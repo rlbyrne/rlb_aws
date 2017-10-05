@@ -94,12 +94,14 @@ fi
 # Move FHD outputs to S3
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 aws s3 mv ${outdir}/fhd_${version}/ \
-s3://mwatest/diffuse_survey/fhd_${version}/ --recursive
-aws s3 mv ${outdir}/fhd_${version}/ \
-s3://mwatest/diffuse_survey/fhd_${version}/ --recursive
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive >/dev/null
+
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
-s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID}
+s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID} \
+>/dev/null
+
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
-s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID}
+s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID} \
+>/dev/null
 
 exit $error_mode
