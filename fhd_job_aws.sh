@@ -41,7 +41,7 @@ if [ ! -f "/uvfits/${obs_id}.uvfits" ]; then
 
     # Download uvfits from S3
     sudo aws s3 cp s3://mwapublic/uvfits/5.1/${obs_id}.uvfits \
-    /uvfits/${obs_id}.uvfits
+    /uvfits/${obs_id}.uvfits >/dev/null
 
     # Verify that the uvfits downloaded correctly
     if [ ! -f "/uvfits/${obs_id}.uvfits" ]; then
