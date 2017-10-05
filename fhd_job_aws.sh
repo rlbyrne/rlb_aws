@@ -64,7 +64,7 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
 
     # Download metafits from S3
     sudo aws s3 cp s3://mwatest/metafits/5.1/${obs_id}.metafits \
-    /uvfits/${obs_id}.metafits
+    /uvfits/${obs_id}.metafits >/dev/null
 
     # Verify that the metafits downloaded correctly
     if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
@@ -76,7 +76,7 @@ fi
 
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
 aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
-${outdir}/fhd_${version}/ --recursive
+${outdir}/fhd_${version}/ --recursive >/dev/null
 
 # Run FHD
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
