@@ -10,6 +10,8 @@ echo TASKID ${SGE_TASK_ID}
 obs_id=$(pull_args.py $*)
 echo OBSID ${obs_id}
 
+echo "Job start time" `date +"%Y-%m-%d_%H-%M-%S"`
+
 #strip the last / if present in output directory filepath
 outdir=${outdir%/}
 echo Using output directory: $outdir
@@ -78,6 +80,9 @@ fi
 aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
 ${outdir}/fhd_${version}/ --recursive >/dev/null
 
+# Run backup script in the background
+fhd_on_aws_backup.sh $outdir $version &
+
 # Run FHD
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
 eor_firstpass_versions -args $obs_id $outdir $version aws || :
@@ -91,6 +96,8 @@ else
     error_mode=1
 fi
 
+kill $(jobs -p) #kill fhd_on_aws_backup.sh
+
 # Move FHD outputs to S3
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 aws s3 mv ${outdir}/fhd_${version}/ \
@@ -103,5 +110,7 @@ s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID} \
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID} \
 >/dev/null
+
+echo "Job end time" `date +"%Y-%m-%d_%H-%M-%S"`
 
 exit $error_mode
