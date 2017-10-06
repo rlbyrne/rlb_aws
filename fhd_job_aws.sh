@@ -78,7 +78,8 @@ fi
 
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
 aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
-${outdir}/fhd_${version}/ --recursive >/dev/null
+${outdir}/fhd_${version}/ --recursive --exclude "*" --include "*${obsid}*" \
+--quiet
 
 # Run backup script in the background
 fhd_on_aws_backup.sh $outdir $version &
@@ -101,15 +102,16 @@ kill $(jobs -p) #kill fhd_on_aws_backup.sh
 # Move FHD outputs to S3
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 aws s3 mv ${outdir}/fhd_${version}/ \
-s3://mwatest/diffuse_survey/fhd_${version}/ --recursive >/dev/null
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
+--include "*${obsid}*" --quiet
 
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID} \
->/dev/null
+--quiet
 
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID} \
->/dev/null
+--quiet
 
 echo "Job end time" `date +"%Y-%m-%d_%H-%M-%S"`
 
