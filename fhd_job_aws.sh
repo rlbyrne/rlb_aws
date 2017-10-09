@@ -10,7 +10,9 @@ echo TASKID ${SGE_TASK_ID}
 obs_id=$(pull_args.py $*)
 echo OBSID ${obs_id}
 
-echo "Job start time" `date +"%Y-%m-%d_%H-%M-%S"`
+echo "JOB START TIME" `date +"%Y-%m-%d_%H-%M-%S"`
+myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+echo PUBLIC IP ${myip}
 
 #strip the last / if present in output directory filepath
 outdir=${outdir%/}
@@ -43,7 +45,7 @@ if [ ! -f "/uvfits/${obs_id}.uvfits" ]; then
 
     # Download uvfits from S3
     sudo aws s3 cp s3://mwapublic/uvfits/5.1/${obs_id}.uvfits \
-    /uvfits/${obs_id}.uvfits >/dev/null
+    /uvfits/${obs_id}.uvfits --quiet
 
     # Verify that the uvfits downloaded correctly
     if [ ! -f "/uvfits/${obs_id}.uvfits" ]; then
@@ -66,7 +68,7 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
 
     # Download metafits from S3
     sudo aws s3 cp s3://mwatest/metafits/5.1/${obs_id}.metafits \
-    /uvfits/${obs_id}.metafits >/dev/null
+    /uvfits/${obs_id}.metafits --quiet
 
     # Verify that the metafits downloaded correctly
     if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
@@ -106,13 +108,13 @@ s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
 --include "*${obsid}*" --quiet
 
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
-s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID} \
---quiet
+s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
+fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
 
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
-s3://mwatest/diffuse_survey/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID} \
---quiet
+s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
+fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
 
-echo "Job end time" `date +"%Y-%m-%d_%H-%M-%S"`
+echo "JOB END TIME" `date +"%Y-%m-%d_%H-%M-%S"`
 
 exit $error_mode
