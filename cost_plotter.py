@@ -93,8 +93,8 @@ def get_data():
 
     s3_path = find_cost_report()
 
-    #os.system("aws s3 cp {} .".format(s3_path))
-    #os.system("gunzip cost_report-1.csv.gz")
+    os.system("aws s3 cp {} .".format(s3_path))
+    os.system("gunzip cost_report-1.csv.gz")
 
     datafile = open("cost_report-1.csv","r")
     data = datafile.readlines()
