@@ -24,12 +24,37 @@ def plot_charges():
     for j in range(len(product_types)):
         cost_integrated[j,:] = [sum(costs[j,:i]) for i in range(len(times))]
 
+    #Sort products from most to least expensive. This is horrible and ugly, make it better.
+    product_types = sorted(product_types, key = lambda val: cost_integrated[product_types.index(val),-1], reverse=True)
+    cost_integrated = cost_integrated[cost_integrated[:,-1].argsort()[::-1]]
+
+    plot_fill_in(times, cost_integrated, product_types)
+
+
+def plot_lines(times, cost_integrated, product_types):
+
+    plt.plot(times,np.sum(cost_integrated, axis=0), label='Total')
     for j in range(len(product_types)):
         plt.plot(times,cost_integrated[j,:],label=product_types[j])
-    plt.plot(times,np.sum(cost_integrated, axis=0), label='Total')
     plt.xlabel("time")
     plt.ylabel("total cost (USD)")
     plt.legend()
+    plt.grid(True)
+    plt.tick_params(labelsize=6)
+    plt.savefig('aws_costs_{}.png'.format(datetime.now().date()))
+
+
+def plot_fill_in(times, cost_integrated, product_types):
+
+    fig, ax = plt.subplots()
+    running_sum = [0]*len(times)
+    for i in range(len(product_types)):
+        running_sum_new = [running_sum[j]+cost_integrated[i,j] for j in range(len(times))]
+        ax.fill_between(times,running_sum_new,running_sum,where=None,label=product_types[i])
+        running_sum = running_sum_new
+    plt.xlabel("time")
+    plt.ylabel("total cost (USD)")
+    plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
     plt.savefig('aws_costs_{}.png'.format(datetime.now().date()))
