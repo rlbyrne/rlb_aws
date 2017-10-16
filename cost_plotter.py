@@ -35,15 +35,29 @@ def plot_charges():
     plt.show()
 
 
+def find_cost_report():
+
+    reports_all = os.popen('aws s3 ls s3://eorbilling//cost_report/ --recursive').readlines()
+    reports = [rep for rep in reports_all if rep.endswith('cost_report-1.csv.gz\n')]
+    latest_report = reports[0]
+    for rep in reports:
+        time = latest_report_time = datetime.strptime(rep[:18],"%Y-%m-%d %H:%M:%S")
+        latest_report_time = datetime.strptime(latest_report[:18],"%Y-%m-%d %H:%M:%S")
+        if time > latest_report_time:
+            latest_report = rep
+    s3_path = "s3://eorbilling/{}".format(latest_report.split(' ')[-1])
+    s3_path = s3_path.rstrip()
+    return s3_path
+
+
 def get_data():
 
-    filename = "cost_report-1"
-    s3_path = "s3://eorbilling//cost_report/20171001-20171101/df6b51f2-4e5e-4ab4-8864-6d34f06c7cdc"
+    s3_path = find_cost_report()
 
-    #os.system("aws s3 cp {}/{}.csv.gz .".format(s3_path,filename))
-    #os.system("gunzip {}.csv.gz".format(filename))
+    os.system("aws s3 cp {} .".format(s3_path))
+    os.system("gunzip cost_report-1.csv.gz")
 
-    datafile = open("{}.csv".format(filename),"r")
+    datafile = open("cost_report-1.csv","r")
     data = datafile.readlines()
     datafile.close()
 
