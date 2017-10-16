@@ -3,26 +3,34 @@
 import os
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_charges():
 
     charge_items = get_data()
     total_cost = sum([item.cost for item in charge_items])
+    product_types = list(set([item.product for item in charge_items]))
+    print(product_types)
     times = [datetime.now() + timedelta(minutes=minutes) for minutes in range(-10080,0)]
     while times[-1] > max([item.endtime for item in charge_items]):
-        times = times[:-1]
-    costs = [0]*len(times)
+        del times[-1]
+    costs = np.zeros((len(product_types),len(times)))
     for i, time in enumerate(times):
         for item in charge_items:
             if item.starttime < time < item.endtime:
-                costs[i] += item.cost_per_minute
+                costs[product_types.index(item.product),i] += item.cost_per_minute
 
-    cost_integrated = [sum(costs[:i]) for i in range(len(times))]
+    cost_integrated = np.zeros((len(product_types),len(times)))
+    for j in range(len(product_types)):
+        cost_integrated[j,:] = [sum(costs[j,:i]) for i in range(len(times))]
 
-    plt.plot(times,cost_integrated)
+    for j in range(len(product_types)):
+        plt.plot(times,cost_integrated[j,:],label=product_types[j])
+    plt.plot(times,np.sum(cost_integrated, axis=0), label='Total')
     plt.xlabel("time")
     plt.ylabel("total cost (USD)")
+    plt.legend()
     plt.grid(True)
     plt.show()
 
@@ -30,10 +38,10 @@ def plot_charges():
 def get_data():
 
     filename = "cost_report-1"
-    s3_path = "s3://eorbilling//cost_report/20171001-20171101/ccf70ead-fdf4-43ea-ba98-696592a1ce37"
+    s3_path = "s3://eorbilling//cost_report/20171001-20171101/df6b51f2-4e5e-4ab4-8864-6d34f06c7cdc"
 
-    os.system("aws s3 cp {}/{}.csv.gz .".format(s3_path,filename))
-    os.system("gunzip {}.csv.gz".format(filename))
+    #os.system("aws s3 cp {}/{}.csv.gz .".format(s3_path,filename))
+    #os.system("gunzip {}.csv.gz".format(filename))
 
     datafile = open("{}.csv".format(filename),"r")
     data = datafile.readlines()
