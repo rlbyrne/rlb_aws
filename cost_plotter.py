@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+#Script that automatically downloads charges spreadsheets from AWS S3 and plots
+#them.
+#Intended to be used with aws_costs_cron.sh to automatically generate plots and
+#upload them to Slack.
+#Created by R. Byrne 10/17
+
 import os
 from datetime import datetime, timedelta
 import matplotlib
