@@ -97,7 +97,7 @@ def get_data(path,anaconda_path):
 
     s3_path = find_cost_report(anaconda_path)
 
-    os.system("{}/aws s3 cp {} {}/}".format(anaconda_path,s3_path,path))
+    os.system("{}/aws s3 cp {} {}/".format(anaconda_path,s3_path,path))
     os.system("gunzip cost_report-1.csv.gz")
 
     datafile = open("{}/cost_report-1.csv".format(path),"r")
