@@ -76,7 +76,8 @@ def plot_fill_in(times, cost_data, product_types, integrate):
 
 def find_cost_report():
 
-    reports_all = os.popen('aws s3 ls s3://eorbilling//cost_report/ --recursive').readlines()
+    reports_all = os.popen('/home/rlbyrne/anaconda2/bin/aws s3 ls s3://eorbilling//cost_report/ --recursive').readlines()
+    #reports_all = os.popen('aws s3 ls s3://eorbilling//cost_report/ --recursive').readlines()
     reports = [rep for rep in reports_all if rep.endswith('cost_report-1.csv.gz\n')]
     latest_report = reports[0]
     for rep in reports:
@@ -93,7 +94,8 @@ def get_data():
 
     s3_path = find_cost_report()
 
-    os.system("aws s3 cp {} .".format(s3_path))
+    os.system("/home/rlbyrne/anaconda2/bin/aws s3 cp {} .".format(s3_path))
+    #os.system("aws s3 cp {} .".format(s3_path))
     os.system("gunzip cost_report-1.csv.gz")
 
     datafile = open("cost_report-1.csv","r")
