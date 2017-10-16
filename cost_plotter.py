@@ -11,7 +11,6 @@ def plot_charges():
     charge_items = get_data()
     total_cost = sum([item.cost for item in charge_items])
     product_types = list(set([item.product for item in charge_items]))
-    print(product_types)
     times = [datetime.now() + timedelta(minutes=minutes) for minutes in range(-10080,0)]
     while times[-1] > max([item.endtime for item in charge_items]):
         del times[-1]
@@ -32,7 +31,8 @@ def plot_charges():
     plt.ylabel("total cost (USD)")
     plt.legend()
     plt.grid(True)
-    plt.show()
+    plt.tick_params(labelsize=6)
+    plt.savefig('aws_costs_{}.png'.format(datetime.now().date()))
 
 
 def find_cost_report():
