@@ -8,6 +8,8 @@ import numpy as np
 
 def plot_charges():
 
+    integrate = True
+
     charge_items = get_data()
     total_cost = sum([item.cost for item in charge_items])
     product_types = list(set([item.product for item in charge_items]))
@@ -26,34 +28,46 @@ def plot_charges():
 
     #Sort products from most to least expensive. This is horrible and ugly, make it better.
     product_types = sorted(product_types, key = lambda val: cost_integrated[product_types.index(val),-1], reverse=True)
-    cost_integrated = cost_integrated[cost_integrated[:,-1].argsort()[::-1]]
-
-    plot_fill_in(times, cost_integrated, product_types)
 
 
-def plot_lines(times, cost_integrated, product_types):
+    if integrate:
+        cost_integrated_sorted = cost_integrated[cost_integrated[:,-1].argsort()[::-1]]
+        plot_fill_in(times, cost_integrated_sorted, product_types, integrate)
+    else:
+        costs_sorted = costs[cost_integrated[:,-1].argsort()[::-1]]
+        plot_fill_in(times, costs_sorted, product_types, integrate)
 
-    plt.plot(times,np.sum(cost_integrated, axis=0), label='Total')
+
+
+def plot_lines(times, cost_data, product_types, integrate):
+
+    plt.plot(times,np.sum(cost_data, axis=0), label='Total')
     for j in range(len(product_types)):
-        plt.plot(times,cost_integrated[j,:],label=product_types[j])
+        plt.plot(times,cost_data[j,:],label=product_types[j])
     plt.xlabel("time")
-    plt.ylabel("total cost (USD)")
-    plt.legend()
+    if integrate:
+        plt.ylabel("total cost (USD)")
+    else:
+        plt.ylabel("cost (USD per minute)")
+    plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
     plt.savefig('aws_costs_{}.png'.format(datetime.now().date()))
 
 
-def plot_fill_in(times, cost_integrated, product_types):
+def plot_fill_in(times, cost_data, product_types, integrate):
 
     fig, ax = plt.subplots()
     running_sum = [0]*len(times)
     for i in range(len(product_types)):
-        running_sum_new = [running_sum[j]+cost_integrated[i,j] for j in range(len(times))]
+        running_sum_new = [running_sum[j]+cost_data[i,j] for j in range(len(times))]
         ax.fill_between(times,running_sum_new,running_sum,where=None,label=product_types[i])
         running_sum = running_sum_new
     plt.xlabel("time")
-    plt.ylabel("total cost (USD)")
+    if integrate:
+        plt.ylabel("total cost (USD)")
+    else:
+        plt.ylabel("cost (USD per minute)")
     plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
@@ -79,8 +93,8 @@ def get_data():
 
     s3_path = find_cost_report()
 
-    os.system("aws s3 cp {} .".format(s3_path))
-    os.system("gunzip cost_report-1.csv.gz")
+    #os.system("aws s3 cp {} .".format(s3_path))
+    #os.system("gunzip cost_report-1.csv.gz")
 
     datafile = open("cost_report-1.csv","r")
     data = datafile.readlines()
