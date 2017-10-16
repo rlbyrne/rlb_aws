@@ -11,8 +11,10 @@ import numpy as np
 def plot_charges():
 
     integrate = True
+    path = '/home/rlbyrne/rlb_aws'
+    anaconda_path = '/home/rlbyrne/anaconda2/bin'
 
-    charge_items = get_data()
+    charge_items = get_data(path,anaconda_path)
     total_cost = sum([item.cost for item in charge_items])
     product_types = list(set([item.product for item in charge_items]))
     times = [datetime.now() + timedelta(minutes=minutes) for minutes in range(-10080,0)]
@@ -34,14 +36,14 @@ def plot_charges():
 
     if integrate:
         cost_integrated_sorted = cost_integrated[cost_integrated[:,-1].argsort()[::-1]]
-        plot_fill_in(times, cost_integrated_sorted, product_types, integrate)
+        plot_fill_in(times, cost_integrated_sorted, product_types, integrate, path)
     else:
         costs_sorted = costs[cost_integrated[:,-1].argsort()[::-1]]
-        plot_fill_in(times, costs_sorted, product_types, integrate)
+        plot_fill_in(times, costs_sorted, product_types, integrate, path)
 
 
 
-def plot_lines(times, cost_data, product_types, integrate):
+def plot_lines(times, cost_data, product_types, integrate, path):
 
     plt.plot(times,np.sum(cost_data, axis=0), label='Total')
     for j in range(len(product_types)):
@@ -54,10 +56,10 @@ def plot_lines(times, cost_data, product_types, integrate):
     plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
-    plt.savefig('aws_costs_{}.png'.format(datetime.now().date()))
+    plt.savefig('{}/aws_costs_{}.png'.format(path, datetime.now().date()))
 
 
-def plot_fill_in(times, cost_data, product_types, integrate):
+def plot_fill_in(times, cost_data, product_types, integrate, path):
 
     fig, ax = plt.subplots()
     running_sum = [0]*len(times)
@@ -73,13 +75,12 @@ def plot_fill_in(times, cost_data, product_types, integrate):
     plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
-    plt.savefig('aws_costs_{}.png'.format(datetime.now().date()))
+    plt.savefig('{}/aws_costs_{}.png'.format(path, datetime.now().date()))
 
 
-def find_cost_report():
+def find_cost_report(anaconda_path):
 
-    reports_all = os.popen('/home/rlbyrne/anaconda2/bin/aws s3 ls s3://eorbilling//cost_report/ --recursive').readlines()
-    #reports_all = os.popen('aws s3 ls s3://eorbilling//cost_report/ --recursive').readlines()
+    reports_all = os.popen('{}/aws s3 ls s3://eorbilling//cost_report/ --recursive'.format(anaconda_path)).readlines()
     reports = [rep for rep in reports_all if rep.endswith('cost_report-1.csv.gz\n')]
     latest_report = reports[0]
     for rep in reports:
@@ -92,15 +93,14 @@ def find_cost_report():
     return s3_path
 
 
-def get_data():
+def get_data(path,anaconda_path):
 
-    s3_path = find_cost_report()
+    s3_path = find_cost_report(anaconda_path)
 
-    os.system("/home/rlbyrne/anaconda2/bin/aws s3 cp {} .".format(s3_path))
-    #os.system("aws s3 cp {} .".format(s3_path))
+    os.system("{}/aws s3 cp {} {}/}".format(anaconda_path,s3_path,path))
     os.system("gunzip cost_report-1.csv.gz")
 
-    datafile = open("cost_report-1.csv","r")
+    datafile = open("{}/cost_report-1.csv".format(path),"r")
     data = datafile.readlines()
     datafile.close()
 
