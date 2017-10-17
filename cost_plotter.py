@@ -19,13 +19,18 @@ def plot_charges():
     integrate = True
     path = '/home/rlbyrne/rlb_aws'
     anaconda_path = '/home/rlbyrne/anaconda2/bin'
+    #path = '/Users/ruby/EoR/rlb_aws'
+    #anaconda_path = '/Users/ruby/anaconda/bin/python'
+    plot_days = 7. #plot the last week of charges
 
-    charge_items = get_data(path,anaconda_path)
+    charge_items = get_data(path,anaconda_path,plot_days)
     total_cost = sum([item.cost for item in charge_items])
     product_types = list(set([item.product for item in charge_items]))
     times = [datetime.now() + timedelta(minutes=minutes) for minutes in range(-10080,0)]
     while times[-1] > max([item.endtime for item in charge_items]):
         del times[-1]
+    while times[0] < min([item.starttime for item in charge_items]):
+        del times[0]
     costs = np.zeros((len(product_types),len(times)))
     for i, time in enumerate(times):
         for item in charge_items:
@@ -39,13 +44,12 @@ def plot_charges():
     #Sort products from most to least expensive. This is horrible and ugly, make it better.
     product_types = sorted(product_types, key = lambda val: cost_integrated[product_types.index(val),-1], reverse=True)
 
-
     if integrate:
         cost_integrated_sorted = cost_integrated[cost_integrated[:,-1].argsort()[::-1]]
         plot_fill_in(times, cost_integrated_sorted, product_types, integrate, path)
     else:
         costs_sorted = costs[cost_integrated[:,-1].argsort()[::-1]]
-        plot_fill_in(times, costs_sorted, product_types, integrate, path)
+        plot_lines(times, costs_sorted, product_types, integrate, path)
 
 
 
@@ -99,7 +103,7 @@ def find_cost_report(anaconda_path):
     return s3_path
 
 
-def get_data(path,anaconda_path):
+def get_data(path,anaconda_path,plot_days):
 
     s3_path = find_cost_report(anaconda_path)
 
@@ -114,7 +118,7 @@ def get_data(path,anaconda_path):
     charge_items = []
     for i, data_line in enumerate(data[1:]):
         new_charge = Lineitem(data_line, header)
-        if new_charge.cost > 0. and (datetime.now() - new_charge.endtime).total_seconds() < 604800:
+        if new_charge.cost > 0. and (datetime.now() - new_charge.endtime).total_seconds() < plot_days*86400.:
             charge_items.append(new_charge)
 
     return charge_items
