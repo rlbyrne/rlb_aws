@@ -61,7 +61,7 @@ echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/coyote"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/FHD"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/MWA_Tools"' >> ~/.bashrc
 echo 'export IDL_PATH=$IDL_PATH:+"/usr/local/exelis/idl82/lib"' >> ~/.bashrc
-echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/Healpix_3.20/src/idl"' >> ~/.bashrc #rerun this
+echo 'export IDL_PATH=$IDL_PATH:+"~/MWA/Healpix_3.20/src/idl"' >> ~/.bashrc
 source ~/.bashrc
 
 sudo mkdir -m 777 /FHD_output

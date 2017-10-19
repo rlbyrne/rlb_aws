@@ -1,8 +1,8 @@
 #! /bin/bash
 
 #############################################################################
-#Runs one observation at a time in grid engine.  Second level program for
-#running firstpass on AWS machines. First level program is run_fhd_aws.sh
+# Runs one observation at a time in grid engine.  Second level program for
+# running firstpass on AWS machines. First level program is run_fhd_aws.sh
 #############################################################################
 
 echo JOBID ${JOB_ID}
@@ -107,6 +107,8 @@ aws s3 mv ${outdir}/fhd_${version}/ \
 s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
 --include "*${obsid}*" --quiet
 
+echo "JOB END TIME" `date +"%Y-%m-%d_%H-%M-%S"`
+
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
 fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
@@ -114,7 +116,5 @@ fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
 fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
-
-echo "JOB END TIME" `date +"%Y-%m-%d_%H-%M-%S"`
 
 exit $error_mode
