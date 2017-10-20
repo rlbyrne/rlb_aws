@@ -79,9 +79,14 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
 fi
 
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
-aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
-${outdir}/fhd_${version}/ --recursive --exclude "*" --include "*${obsid}*" \
---quiet
+s3_files=$(aws s3 ls s3://mwatest/diffuse_survey/fhd_${version} --recursive \
+| awk '{print $4}')
+for file in $s3_files; do
+    if [[ $file == *${obsid}* ]]; then
+        aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/${file} \
+        ${outdir}/fhd_${version}/${file} --quiet
+    fi
+done
 
 # Run backup script in the background
 fhd_on_aws_backup.sh $outdir $version &
@@ -103,16 +108,22 @@ kill $(jobs -p) #kill fhd_on_aws_backup.sh
 
 # Move FHD outputs to S3
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
-aws s3 mv ${outdir}/fhd_${version}/ \
-s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
---include "*${obsid}*" --quiet
+local_files=$(find ${outdir}/fhd_${version} -type f)
+for file in $local_files; do
+    if [[ $file == *${obsid}* ]]; then
+        aws s3 mv ${outdir}/fhd_${version}/${file} \
+        s3://mwatest/diffuse_survey/fhd_${version}/${file} --quiet
+    fi
+done
 
 echo "JOB END TIME" `date +"%Y-%m-%d_%H-%M-%S"`
 
+# Copy gridengine stdout to S3
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
 fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
 
+# Copy gridengine stderr to S3
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
 s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
 fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
