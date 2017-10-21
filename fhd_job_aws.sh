@@ -83,9 +83,9 @@ s3_files=$(aws s3 ls s3://mwatest/diffuse_survey/fhd_${version} --recursive \
 | awk '{print $4}')
 for file_path in $s3_files; do
     if [[ $file_path == *${obsid}* ]]; then
-        filename=${file_path#diffuse_survey/fhd_${version}/}
-        aws s3 cp s3://mwatest/diffuse_survey_fhd_${version}/${filename} \
-        ${outdir}/fhd_${version}/${filename} --quiet
+        filename=${file_path#diffuse_survey/}
+        aws s3 cp s3://mwatest/diffuse_survey/${filename} \
+        ${outdir}/${filename} --quiet
     fi
 done
 
@@ -112,9 +112,9 @@ echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 local_files=$(find ${outdir}/fhd_${version} -type f)
 for file_path in $local_files; do
     if [[ $file_path == *${obsid}* ]]; then
-        filename=${file_path#${outdir}/fhd_${version}/}
-        aws s3 mv ${file_path} \
-        s3://mwatest/diffuse_survey/fhd_${version}/${filename} --quiet
+        filename=${file_path#${outdir}/}
+        aws s3 mv $outdir/${filename} \
+        s3://mwatest/diffuse_survey/${filename} --quiet
     fi
 done
 
