@@ -81,10 +81,11 @@ fi
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
 s3_files=$(aws s3 ls s3://mwatest/diffuse_survey/fhd_${version} --recursive \
 | awk '{print $4}')
-for file in $s3_files; do
-    if [[ $file == *${obsid}* ]]; then
-        aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/${file} \
-        ${outdir}/fhd_${version}/${file} --quiet
+for file_path in $s3_files; do
+    if [[ $file_path == *${obsid}* ]]; then
+        filename=${file_path#diffuse_survey/fhd_${version}/}
+        aws s3 cp s3://mwatest/diffuse_survey_fhd_${version}/${filename} \
+        ${outdir}/fhd_${version}/${filename} --quiet
     fi
 done
 
@@ -109,10 +110,11 @@ kill $(jobs -p) #kill fhd_on_aws_backup.sh
 # Move FHD outputs to S3
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 local_files=$(find ${outdir}/fhd_${version} -type f)
-for file in $local_files; do
-    if [[ $file == *${obsid}* ]]; then
-        aws s3 mv ${outdir}/fhd_${version}/${file} \
-        s3://mwatest/diffuse_survey/fhd_${version}/${file} --quiet
+for file_path in $local_files; do
+    if [[ $file_path == *${obsid}* ]]; then
+        filename=${file_path#${outdir}/fhd_${version}/}
+        aws s3 mv ${file_path} \
+        s3://mwatest/diffuse_survey/fhd_${version}/${filename} --quiet
     fi
 done
 
