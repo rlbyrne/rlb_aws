@@ -82,15 +82,9 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
 fi
 
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
-s3_files=$(aws s3 ls s3://mwatest/diffuse_survey/fhd_${version} --recursive \
-| awk '{print $4}')
-for file_path in $s3_files; do
-    if [[ $file_path == *${obs_id}* ]]; then
-        filename=${file_path#diffuse_survey/}
-        aws s3 cp s3://mwatest/diffuse_survey/${filename} \
-        ${outdir}/${filename} --quiet
-    fi
-done
+aws s3 cp s3://mwatest/diffuse_survey/fhd_${version}/ \
+${outdir}/fhd_${version}/ --recursive --exclude "*" --include "*${obs_id}*" \
+--quiet
 
 # Run backup script in the background
 fhd_on_aws_backup.sh $outdir $version &
@@ -111,15 +105,9 @@ fi
 kill $(jobs -p) #kill fhd_on_aws_backup.sh
 
 # Move FHD outputs to S3
-echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
-local_files=$(find ${outdir}/fhd_${version} -type f)
-for file_path in $local_files; do
-    if [[ $file_path == *${obs_id}* ]]; then
-        filename=${file_path#${outdir}/}
-        aws s3 mv $outdir/${filename} \
-        s3://mwatest/diffuse_survey/${filename} --quiet
-    fi
-done
+aws s3 mv ${outdir}/fhd_${version}/ \
+s3://mwatest/diffuse_survey/fhd_${version}/ --recursive --exclude "*" \
+--include "*${obs_id}*" --quiet
 
 echo "JOB END TIME" `date +"%Y-%m-%d_%H-%M-%S"`
 
