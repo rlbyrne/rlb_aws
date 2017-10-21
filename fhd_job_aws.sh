@@ -18,6 +18,9 @@ echo PUBLIC IP ${myip}
 outdir=${outdir%/}
 echo Using output directory: $outdir
 
+s3_bucket=${s3_bucket%/}
+echo Using output S3 bucket: $s3_bucket
+
 #create output directory with full permissions
 if [ -d "$outdir" ]; then
     sudo chmod -R 777 $outdir
@@ -82,7 +85,7 @@ fi
 s3_files=$(aws s3 ls s3://mwatest/diffuse_survey/fhd_${version} --recursive \
 | awk '{print $4}')
 for file_path in $s3_files; do
-    if [[ $file_path == *${obsid}* ]]; then
+    if [[ $file_path == *${obs_id}* ]]; then
         filename=${file_path#diffuse_survey/}
         aws s3 cp s3://mwatest/diffuse_survey/${filename} \
         ${outdir}/${filename} --quiet
@@ -111,7 +114,7 @@ kill $(jobs -p) #kill fhd_on_aws_backup.sh
 echo "Copying outputs to s3://mwatest/diffuse_survey/fhd_${version}"
 local_files=$(find ${outdir}/fhd_${version} -type f)
 for file_path in $local_files; do
-    if [[ $file_path == *${obsid}* ]]; then
+    if [[ $file_path == *${obs_id}* ]]; then
         filename=${file_path#${outdir}/}
         aws s3 mv $outdir/${filename} \
         s3://mwatest/diffuse_survey/${filename} --quiet
