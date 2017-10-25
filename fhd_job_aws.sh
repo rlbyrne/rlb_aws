@@ -91,7 +91,7 @@ fhd_on_aws_backup.sh $outdir $version &
 
 # Run FHD
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e \
-eor_firstpass_versions -args $obs_id $outdir $version aws || :
+rlb_fhd_versions -args $obs_id $outdir $version aws || :
 
 if [ $? -eq 0 ]
 then

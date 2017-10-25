@@ -38,8 +38,9 @@ do
 	f) obs_file_name="$OPTARG";;	#text file of observation id's
 	s) starting_obs=$OPTARG;;	#starting observation in text file for choosing a range
 	e) ending_obs=$OPTARG;;		#ending observation in text file for choosing a range
-    o) outdir=$OPTARG;;		#output directory for FHD output folder
-    v) version=$OPTARG;;		#FHD folder name and case for eor_firstpass_versions
+    o) outdir=$OPTARG;;		#output directory for FHD
+    b) s3_bucket=$OPTARG;;		#output bucket on S3
+    v) version=$OPTARG;;		#FHD folder name and case for rlb_fhd_versions
 		#Example: nb_foo creates folder named fhd_nb_foo
 	n) nslots=$OPTARG;;		#Number of slots for grid engine
 	\?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
@@ -86,6 +87,16 @@ else
     echo Using output directory: $outdir
 fi
 
+if [ -z ${s3_bucket} ]
+then
+    s3_bucket=s3://mwatest/diffuse_survey
+    echo Using default S3 bucket: $s3_bucket
+else
+    #strip the last / if present in output directory filepath
+    s3_bucket=${s3_bucket%/}
+    echo Using S3 bucket: $s3_bucket
+fi
+
 logdir=~/grid_out
 
 #Use default version if not supplied.
@@ -94,11 +105,11 @@ if [ -z ${version} ]; then
    exit 1
 fi
 
-if grep -q \'${version}\' ~/MWA/FHD/Observations/eor_firstpass_versions.pro
+if grep -q \'${version}\' ~/MWA/FHD/Observations/rlb_fhd_versions.pro
 then
     echo Using version $version
 else
-    echo Version \'${version}\' was not found in ~/MWA/FHD/Observations/eor_firstpass_versions.pro
+    echo Version \'${version}\' was not found in ~/MWA/FHD/Observations/rlb_fhd_versions.pro
     exit 1
 fi
 
