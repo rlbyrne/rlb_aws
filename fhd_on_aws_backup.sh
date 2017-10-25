@@ -1,5 +1,12 @@
 #! /bin/bash
 
+# Parse arguments
+outdir=$1
+s3_path=$2
+version=$3
+JOB_ID=$4
+myip=$5
+
 i=0
 while true; do
 
@@ -8,16 +15,16 @@ while true; do
 
         # Copy gridengine stdout to S3
         aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
-        s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
+        ${s3_path}/fhd_${version}/grid_out/\
         fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
 
         # Copy gridengine stderr to S3
         aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
-        s3://mwatest/diffuse_survey/fhd_${version}/grid_out/\
+        ${s3_path}/fhd_${version}/grid_out/\
         fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
 
         aws s3 sync ${outdir}/fhd_${version}/ \
-        s3://mwatest/diffuse_survey/fhd_${version}/ --quiet
+        ${s3_path}/fhd_${version}/ --quiet
 
         break
     fi
@@ -25,7 +32,7 @@ while true; do
     if [ $i -eq 720 ]; then # Back up every hour
         echo "Backup to S3: " `date +"%Y-%m-%d_%H-%M-%S"`
         aws s3 sync ${outdir}/fhd_${version}/ \
-        s3://mwatest/diffuse_survey/fhd_${version}/ --quiet
+        ${s3_path}/fhd_${version}/ --quiet
 
         i=0
     fi

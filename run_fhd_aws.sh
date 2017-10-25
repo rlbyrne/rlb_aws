@@ -39,7 +39,7 @@ do
 	s) starting_obs=$OPTARG;;	#starting observation in text file for choosing a range
 	e) ending_obs=$OPTARG;;		#ending observation in text file for choosing a range
     o) outdir=$OPTARG;;		#output directory for FHD
-    b) s3_bucket=$OPTARG;;		#output bucket on S3
+    b) s3_path=$OPTARG;;		#output bucket on S3
     v) version=$OPTARG;;		#FHD folder name and case for rlb_fhd_versions
 		#Example: nb_foo creates folder named fhd_nb_foo
 	n) nslots=$OPTARG;;		#Number of slots for grid engine
@@ -87,14 +87,14 @@ else
     echo Using output directory: $outdir
 fi
 
-if [ -z ${s3_bucket} ]
+if [ -z ${s3_path} ]
 then
-    s3_bucket=s3://mwatest/diffuse_survey
-    echo Using default S3 bucket: $s3_bucket
+    s3_path=s3://mwatest/diffuse_survey
+    echo Using default S3 location: $s3_path
 else
     #strip the last / if present in output directory filepath
-    s3_bucket=${s3_bucket%/}
-    echo Using S3 bucket: $s3_bucket
+    s3_path=${s3_path%/}
+    echo Using S3 bucket: $s3_path
 fi
 
 logdir=~/grid_out
@@ -181,5 +181,5 @@ done
 
 for obs_id in "${good_obs_list[@]}"
 do
-   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y ~/MWA/rlb_aws/fhd_job_aws.sh $obs_id &
+   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id &
 done
