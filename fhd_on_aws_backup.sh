@@ -27,11 +27,11 @@ while true; do
         ${s3_path}/fhd_${version}/ --exclude "*" --include "*${obs_id}*" \
         --quiet
 
-        break
+        exit 0
     fi
 
     if [ $i -eq 720 ]; then # Back up every hour
-        echo "Backup to S3: " `date +"%Y-%m-%d_%H-%M-%S"`
+        echo "Backup to S3: " `date +"%Y-%m-%d_%H:%M:%S"`
         aws s3 sync ${outdir}/fhd_${version}/ \
         ${s3_path}/fhd_${version}/ --exclude "*" --include "*${obs_id}*" \
         --quiet

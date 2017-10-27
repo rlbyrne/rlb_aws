@@ -10,7 +10,7 @@ echo JOBID ${JOB_ID}
 echo TASKID ${SGE_TASK_ID}
 obs_id=$(pull_args.py $*)
 echo OBSID ${obs_id}
-echo "JOB START TIME" `date +"%Y-%m-%d_%H-%M-%S"`
+echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 echo PUBLIC IP ${myip}
 
@@ -110,7 +110,7 @@ kill $(jobs -p) #kill fhd_on_aws_backup.sh
 aws s3 mv ${outdir}/fhd_${version}/ ${s3_path}/fhd_${version}/ --recursive \
 --exclude "*" --include "*${obs_id}*" --quiet
 
-echo "JOB END TIME" `date +"%Y-%m-%d_%H-%M-%S"`
+echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 
 # Copy gridengine stdout to S3
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
