@@ -24,7 +24,8 @@ while true; do
         fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
 
         aws s3 sync ${outdir}/fhd_${version}/ \
-        ${s3_path}/fhd_${version}/ --quiet
+        ${s3_path}/fhd_${version}/ --exclude "*" --include "*${obs_id}*" \
+        --quiet
 
         break
     fi
@@ -32,7 +33,8 @@ while true; do
     if [ $i -eq 720 ]; then # Back up every hour
         echo "Backup to S3: " `date +"%Y-%m-%d_%H-%M-%S"`
         aws s3 sync ${outdir}/fhd_${version}/ \
-        ${s3_path}/fhd_${version}/ --quiet
+        ${s3_path}/fhd_${version}/ --exclude "*" --include "*${obs_id}*" \
+        --quiet
 
         i=0
     fi
