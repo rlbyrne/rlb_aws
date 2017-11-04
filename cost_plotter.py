@@ -106,9 +106,9 @@ def plot_fill_in(times, cost_data, product_types, integrate, path):
 
 def find_cost_report(anaconda_path, date):
 
-    prev_month = date + timedelta(days=-(date.day+1))
+    next_month = date + timedelta(days=+(40-date.day))
     subdir = "{}{:02d}01-{}{:02d}01".format(
-        prev_month.year, prev_month.month, date.year, date.month)
+        date.year, date.month, next_month.year, next_month.month)
     reports_all = os.popen(
         ("{}/aws s3 ls s3://eorbilling//cost_report/{}/ "
          "--recursive").format(anaconda_path, subdir)).readlines()
