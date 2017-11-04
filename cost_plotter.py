@@ -23,7 +23,13 @@ def plot_charges():
     # anaconda_path = '/Users/ruby/anaconda/bin/python'
     plot_days = 7.  # plot the last week of charges
 
-    charge_items = get_data(path, anaconda_path, plot_days)
+    charge_items = get_data(path, anaconda_path, plot_days, datetime.now())
+    if datetime.now().day <= plot_days:
+        charge_items.extend(
+            get_data(path, anaconda_path, plot_days,
+                     datetime.now() + timedelta(days=-(datetime.now().day+1)))
+            )
+
     total_cost = sum([item.cost for item in charge_items])
     product_types = list(set([item.product for item in charge_items]))
     times = [datetime.now() + timedelta(minutes=minutes) for minutes in
@@ -98,10 +104,14 @@ def plot_fill_in(times, cost_data, product_types, integrate, path):
     plt.savefig('{}/aws_costs_{}.png'.format(path, datetime.now().date()))
 
 
-def find_cost_report(anaconda_path):
+def find_cost_report(anaconda_path, date):
 
-    reports_all = os.popen(("{}/aws s3 ls s3://eorbilling//cost_report/ "
-                            "--recursive").format(anaconda_path)).readlines()
+    prev_month = date + timedelta(days=-(date.day+1))
+    subdir = "{}{}01-{}{}01".format(
+        prev_month.year, prev_month.month, date.year, date.month)
+    reports_all = os.popen(
+        ("{}/aws s3 ls s3://eorbilling//cost_report/{}/ "
+         "--recursive").format(anaconda_path, subdir)).readlines()
     reports = [rep for rep in reports_all if
                rep.endswith('cost_report-1.csv.gz\n')]
     latest_report = reports[0]
@@ -116,9 +126,9 @@ def find_cost_report(anaconda_path):
     return s3_path
 
 
-def get_data(path, anaconda_path, plot_days):
+def get_data(path, anaconda_path, plot_days, date):
 
-    s3_path = find_cost_report(anaconda_path)
+    s3_path = find_cost_report(anaconda_path, date)
 
     os.system("{}/aws s3 cp {} {}/".format(anaconda_path, s3_path, path))
     os.system(("gunzip -f {}/cost_report-1.csv.gz > "
