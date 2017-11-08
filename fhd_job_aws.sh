@@ -18,7 +18,7 @@ echo PUBLIC IP ${myip}
 
 uvfits_s3_loc=s3://mwapublic/uvfits/5.1
 metafits_s3_loc=s3://mwatest/metafits/5.1
-uvfits_s3_loc = metafits_s3_loc #temporarily added 11/8/17
+uvfits_s3_loc=metafits_s3_loc #temporarily added 11/8/17
 
 #strip the last / if present in output directory filepath
 outdir=${outdir%/}
