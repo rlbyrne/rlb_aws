@@ -8,7 +8,9 @@
 
 echo JOBID ${JOB_ID}
 echo TASKID ${SGE_TASK_ID}
-obs_id=$(pull_args.py $*)
+#obs_id=$(pull_args.py $*)
+obs_id=$1
+run_type=$2
 echo OBSID ${obs_id}
 echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
@@ -23,6 +25,11 @@ echo Using output directory: $outdir
 
 s3_path=${s3_path%/}
 echo Using output S3 location: $s3_path
+
+if [ $run_type == 'sim' ]; then
+    versions_script='rlb_fhd_sim_versions'
+else
+    versions_script='rlb_fhd_versions'
 
 #create output directory with full permissions
 if [ -d "$outdir" ]; then
@@ -92,7 +99,7 @@ aws s3 cp ${s3_path}/fhd_${version}/ ${outdir}/fhd_${version}/ --recursive \
 fhd_on_aws_backup.sh $outdir $s3_path $version $JOB_ID $myip &
 
 # Run FHD
-idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e rlb_fhd_versions -args \
+idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e $versions_script -args \
 $obs_id $outdir $version aws || :
 
 if [ $? -eq 0 ]

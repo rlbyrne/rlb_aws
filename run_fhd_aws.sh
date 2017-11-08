@@ -32,7 +32,7 @@ unset version
 #######Gathering the input arguments and applying defaults if necessary
 
 #Parse flags for inputs
-while getopts ":f:s:e:o:v:n:" option
+while getopts ":f:s:e:o:v:n:r:" option
 do
    case $option in
 	f) obs_file_name="$OPTARG";;	#text file of observation id's
@@ -43,8 +43,9 @@ do
     v) version=$OPTARG;;		#FHD folder name and case for rlb_fhd_versions
 		#Example: nb_foo creates folder named fhd_nb_foo
 	n) nslots=$OPTARG;;		#Number of slots for grid engine
+    r) run_type=$OPTARG;;
 	\?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
-	    echo "-v (version input for FHD),  -n (number of slots to use)."
+	    echo "-v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation))."
 	    exit 1;;
 	:) echo "Missing option argument for input flag"
 	   exit 1;;
@@ -118,6 +119,14 @@ if [ -z ${nslots} ]; then
     nslots=10
 fi
 
+if [ -z ${run_type} ]; then
+    run_type = 'data'
+fi
+
+if [ ${run_type} != 'data' ] && [ ${run_type} != 'sim' ]; then
+    echo Invalid run type. Options are -r data and -r sim.
+    exit 1
+fi
 
 #Make directory if it doesn't already exist
 sudo mkdir -p -m 777 ${outdir}/fhd_${version}/grid_out
@@ -181,5 +190,5 @@ done
 
 for obs_id in "${good_obs_list[@]}"
 do
-   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id &
+   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id $run_type &
 done
