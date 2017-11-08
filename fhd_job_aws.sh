@@ -10,7 +10,7 @@ echo JOBID ${JOB_ID}
 echo TASKID ${SGE_TASK_ID}
 #obs_id=$(pull_args.py $*)
 obs_id=$1
-run_type=$2
+versions_script=$2
 echo OBSID ${obs_id}
 echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
@@ -18,6 +18,7 @@ echo PUBLIC IP ${myip}
 
 uvfits_s3_loc=s3://mwapublic/uvfits/5.1
 metafits_s3_loc=s3://mwatest/metafits/5.1
+uvfits_s3_loc = metafits_s3_loc #temporarily added 11/8/17
 
 #strip the last / if present in output directory filepath
 outdir=${outdir%/}
@@ -25,11 +26,6 @@ echo Using output directory: $outdir
 
 s3_path=${s3_path%/}
 echo Using output S3 location: $s3_path
-
-if [ $run_type == 'sim' ]; then
-    versions_script='rlb_fhd_sim_versions'
-else
-    versions_script='rlb_fhd_versions'
 
 #create output directory with full permissions
 if [ -d "$outdir" ]; then

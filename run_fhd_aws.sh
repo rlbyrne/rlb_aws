@@ -106,11 +106,25 @@ if [ -z ${version} ]; then
    exit 1
 fi
 
-if grep -q \'${version}\' ~/MWA/FHD/Observations/rlb_fhd_versions.pro
+if [ -z ${run_type} ]; then
+    run_type = 'data'
+fi
+if [ ${run_type} != 'data' ] && [ ${run_type} != 'sim' ]; then
+    echo Invalid run type. Options are -r data and -r sim.
+    exit 1
+fi
+
+if [ $run_type == 'sim' ]; then
+    versions_script='rlb_fhd_sim_versions'
+else
+    versions_script='rlb_fhd_versions'
+fi
+
+if grep -q \'${version}\' ~/MWA/FHD/Observations/${versions_script}.pro
 then
     echo Using version $version
 else
-    echo Version \'${version}\' was not found in ~/MWA/FHD/Observations/rlb_fhd_versions.pro
+    echo Version \'${version}\' was not found in ~/MWA/FHD/Observations/${versions_script}.pro
     exit 1
 fi
 
@@ -119,14 +133,7 @@ if [ -z ${nslots} ]; then
     nslots=10
 fi
 
-if [ -z ${run_type} ]; then
-    run_type = 'data'
-fi
 
-if [ ${run_type} != 'data' ] && [ ${run_type} != 'sim' ]; then
-    echo Invalid run type. Options are -r data and -r sim.
-    exit 1
-fi
 
 #Make directory if it doesn't already exist
 sudo mkdir -p -m 777 ${outdir}/fhd_${version}/grid_out
@@ -190,5 +197,5 @@ done
 
 for obs_id in "${good_obs_list[@]}"
 do
-   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id $run_type &
+   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id $versions_script &
 done
