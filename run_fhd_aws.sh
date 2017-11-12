@@ -107,7 +107,7 @@ if [ -z ${version} ]; then
 fi
 
 if [ -z ${run_type} ]; then
-    run_type = 'data'
+    run_type='data'
 fi
 if [ ${run_type} != 'data' ] && [ ${run_type} != 'sim' ]; then
     echo Invalid run type. Options are -r data and -r sim.
