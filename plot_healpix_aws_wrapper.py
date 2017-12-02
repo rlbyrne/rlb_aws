@@ -19,6 +19,6 @@ obsids = [1131478056, 1131564464, 1131477936, 1130787784, 1131477816,
 obsids = list(set(obsids))
 
 for obs in obsids:
-    os.system('aws s3 cp s3://mwatest/diffuse_survey/fhd_rlb_GLEAM+Fornax_cal_decon_Nov2016/output_data/{}_uniform_Residual_I_HEALPix.fits'.format(obs) '/Healpix_fits/{}_uniform_Residual_I_HEALPix.fits'.format(obs))
+    os.system('aws s3 cp s3://mwatest/diffuse_survey/fhd_rlb_GLEAM+Fornax_cal_decon_Nov2016/output_data/{}_uniform_Residual_I_HEALPix.fits /Healpix_fits/{}_uniform_Residual_I_HEALPix.fits'.format(obs, obs))
 
-os.system('qsub -V -b y -cwd -e /home/ubuntu/healplot_err.txt -o /home/ubuntu/healplot_out.txt -pe smp 10 -sync y /home/ubuntu/MWA/rlb_awsplot_healpix.py')
+#os.system('qsub -V -b y -cwd -e /home/ubuntu/healplot_err.txt -o /home/ubuntu/healplot_out.txt -pe smp 10 -sync y /home/ubuntu/MWA/rlb_awsplot_healpix.py')
