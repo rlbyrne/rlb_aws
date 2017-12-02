@@ -1,6 +1,5 @@
 #!/home/ubuntu/miniconda2/bin/python
 
-from mpl_toolkits.basemap import Basemap
 from astropy.io import fits
 import numpy as np
 import healpy as hp
@@ -14,51 +13,6 @@ from matplotlib.collections import PatchCollection
 from scipy.interpolate import griddata
 import sys
 import surveyview
-
-
-def healpix_converter(data_filename):
-    data_array = radcos_fio.data()
-    # file pixels may be organized as ring or nest. Currently on nest
-    ra = (np.pi * 2 / 360) * data_array[:, 0]
-    dec = (np.pi * 2 / 360) * data_array[:, 1]
-    flux = data_array[:, 2]
-    ra[np.where(ra > np.pi)] -= 2 * np.pi
-    pixel_refs = hp.pixelfunc.ang2pix(32, ra, dec, nest=False, lonlat=False)
-    print pixel_refs
-
-    return
-
-    if nest_or_ring is 'ring':
-        ra, dec = hp.pixelfunc.pix2ang(int(nside), pixelnum, nest=False, lonlat=True)
-    if nest_or_ring is 'nest':
-        ra, dec = hp.pixelfunc.pix2ang(int(nside), pixelnum, nest=True, lonlat=True)
-
-    # plot of Galactic gas with coordinate projection
-    min_ra = np.min(ra)
-    print min_ra
-    max_ra = np.max(ra)
-    print max_ra
-    mean_ra = np.mean(ra)
-    min_dec = np.min(dec)
-    print min_dec
-    max_dec = np.max(dec)
-    print max_dec
-    mean_dec = np.mean(dec)
-
-    fig = plt.figure()
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-    # llc and urc are x & y ranges, and are specific to a location.
-    # The latitude and longitude settings are part of basemap.
-    m = Basemap(projection='hammer', llcrnrlon=-11, llcrnrlat=-15, urcrnrlon=13.5, urcrnrlat=-37, resolution='h', epsg=5520)
-    # m = Basemap(projection='hammer', lon_0=mean_ra, lat_0=mean_dec, llcrnrlon=min_ra, llcrnrlat=min_dec, urcrnrlon=max_ra, urcrnry=max_dec, resolution='h', epsg=5520)
-    x, y = m(ra, dec)
-    # draw parallels and meridians. Labels are 1/0 as [Top,bottom,right,left]
-    m.drawparallels(np.arange(-90., 120., 10.), labels=[1, 0, 0, 0])
-    m.drawmeridians(np.arange(0., 420., 10.), labels=[0, 0, 0, 1])
-    # creates a scatter plot of the selected data on a globe.
-    m.scatter(x, y, 3, marker='o', linewidths=.1, c=data, cmap=plt.cm.coolwarm)
-    m.colorbar()
-    plt.show()
 
 
 def plot_healpix_file(data_filename, save_filename):
@@ -125,7 +79,7 @@ def plot_healpix_tiling():
 
     data = []
     for i, obs in enumerate(obsids):
-        print 'Gathering pixels from obsid {} of {}.'.format(i, len(obsids))
+        print 'Gathering pixels from obsid {} of {}.'.format(i+1, len(obsids))
         obs_data, nside, nest = load_map('{}/{}_{}_{}_HEALPix.fits'.format(data_dir, obs, normalization, data_type))
         tile_bounds_radec = [[tile_center_ras[i]-5, tile_center_decs[i]-5],
                              [tile_center_ras[i]-5, tile_center_decs[i]+5],
@@ -183,71 +137,6 @@ def plot_healpix_tiling():
     cbar.ax.set_ylabel('Flux Density (Jy/sr)', rotation=270)  # label colorbar
 
     plt.savefig('/home/ubuntu/MWA/mosaicplot.png', format='png', dpi=500)
-
-
-def plot_healpix_mosaic(data_dir, obs_array, save_filename):
-
-    data_type = 'Residual_I'
-    normalization = 'uniform'
-    obs_info_file = '/Users/ruby/EoR/sidelobe_survey_obsinfo.txt'
-    boundary_width = 0.1
-
-    if data_dir.endswith('/'):
-        data_dir = data_dir[:-1]
-
-    observations = surveyview.load_survey(obs_info_file)
-    observations = [obs for obs in observations if obs.obsid in obs_array]
-
-    data_files = os.listdir(data_dir)
-    for i, use_obsid in enumerate(obs_array):
-        obsid_list = [obs.obsid for obs in observations]
-        heal_file = '{}_{}_{}_HEALPix.fits'.format(use_obsid, normalization,
-                                                   data_type)
-        if heal_file in data_files:
-            observations[obsid_list.index(use_obsid)].heal_data, \
-                nside_new, nest_new \
-                = load_map('{}/{}'.format(data_dir, heal_file))
-            if i != 0:
-                if nside_new != nside:
-                    print 'ERROR: HEALPix nsides do not match. Exiting.'
-                    sys.exit(1)
-                if nest_new != nest:
-                    print 'ERROR: HEALPix ordering conventions do not match. Exiting.'
-                    sys.exit(1)
-            nside = nside_new
-            nest = nest_new
-        else:
-            print 'WARNING: Data file {} not found.'.format(heal_file)
-            del observations[obsid_list.index(use_obsid)]
-
-    pixel_vals = []
-    for obs in observations:
-        pixel_vals.extend(
-            [data_point.pixelnum for data_point in obs.heal_data]
-            )
-    pixel_vals = list(set(pixel_vals))
-
-    use_data = [0]*len(pixel_vals)
-    for i, pixel in enumerate(pixel_vals):
-        if i % 100 == 0:
-            print i
-        pixel_dist = [float('inf')]*len(observations)
-        pixel_ra, pixel_dec = hp.pixelfunc.pix2ang(nside, pixel, nest=nest,
-                                                   lonlat=True)
-        for j, obs in enumerate(observations):
-            if pixel in [data_point.pixelnum for data_point in obs.heal_data]:
-                ra_dist = min([abs(obs.ra - pixel_ra + delta) for delta in
-                              [-360., 0, 360]])
-                pixel_dist[j] = (ra_dist)**2 + (obs.dec-pixel_dec)**2
-
-        pixel_dist_sorted = sorted(pixel_dist)
-        obs_use_data = observations[pixel_dist.index(pixel_dist_sorted[0])].heal_data
-        use_data[i] = obs_use_data[([data_point.pixelnum for data_point in obs_use_data]).index(pixel)]
-        if pixel_dist_sorted[1]-pixel_dist_sorted[0] < boundary_width**2:
-            use_data[i].signal = 0
-
-    print nside
-    plot_filled_pixels(use_data, nside, nest, save_filename)
 
 
 def plot_filled_pixels(data, nside, nest, save_filename):
