@@ -106,7 +106,7 @@ def plot_healpix_tiling():
     ax.add_collection(collection)  # plot data
 
     # plot lines between tiles
-    line_width = 0.5
+    line_width = 2
     color = 'gray'
     order = 8
     plt.plot([130, -45], [-10, -10], lw=line_width, c=color, zorder=order)
