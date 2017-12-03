@@ -102,7 +102,7 @@ def plot_healpix_tiling():
     collection.set_array(np.array(colors))  # set the data colors
     collection.set_edgecolor('face')  # make the face and edge colors match
 
-    fig, ax = plt.subplots(figsize=(48, 16), dpi=500)
+    fig, ax = plt.subplots(figsize=(24, 8), dpi=1000)
     ax.add_collection(collection)  # plot data
 
     # plot lines between tiles
@@ -136,7 +136,7 @@ def plot_healpix_tiling():
     cbar = fig.colorbar(collection, ax=ax)  # add colorbar
     cbar.ax.set_ylabel('Flux Density (Jy/sr)', rotation=270)  # label colorbar
 
-    plt.savefig('/home/ubuntu/MWA/mosaicplot.png', format='png', dpi=500)
+    plt.savefig('/home/ubuntu/MWA/mosaicplot.png', format='png', dpi=1000)
 
 
 def plot_filled_pixels(data, nside, nest, save_filename):
