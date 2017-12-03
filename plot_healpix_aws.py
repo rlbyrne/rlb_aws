@@ -102,7 +102,7 @@ def plot_healpix_tiling():
     print 'Plotting.'
     collection = PatchCollection(patches, cmap='Greys_r', lw=0.04)
     collection.set_array(np.array(colors))  # set the data colors
-    collection.set_clim(vmin=-.03, vmax=.03)  # set the colorbar min and max
+    collection.set_clim(vmin=-.035, vmax=.035)  # set the colorbar min and max
     collection.set_edgecolor('face')  # make the face and edge colors match
 
     fig, ax = plt.subplots(figsize=(24, 8), dpi=1000)
