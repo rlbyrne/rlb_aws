@@ -10,7 +10,6 @@ import matplotlib as mpl
 import os
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-from scipy.interpolate import griddata
 import sys
 import surveyview
 
