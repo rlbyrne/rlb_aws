@@ -14,10 +14,26 @@ import sys
 import surveyview
 
 
-def plot_healpix_file(data_filename, save_filename):
+obsids = [1131478056, 1131564464, 1131477936, 1130787784, 1131477816,
+          1131733672, 1131562544, 1131733552, 1130785864, 1131475896,
+          1131559064, 1131558944, 1131731752, 1130782264, 1130783824,
+          1131470736, 1131557144, 1131470616, 1130780464, 1131470496,
+          1131468936, 1131553544, 1131726352, 1130778664, 1131468696,
+          1131724672, 1131551744, 1131465216, 1130776864, 1130776624,
+          1131463536, 1131549944, 1131463416, 1130773264, 1131463296,
+          1131461616, 1131548024, 1131461496, 1130773144, 1131461376,
+          1131717352, 1131544424, 1131717232, 1131459696, 1131459576,
+          1131456216, 1131542624, 1131456096, 1131715432, 1131715312,
+          1131711952, 1131540824, 1131454296, 1131713632, 1131454176,
+          1131710152, 1131537224, 1131710032, 1131710032, 1131709912,
+          1131535544, 1131535424, 1131535304, 1131710032, 1131709912]
 
-    data, nside, nest = load_map(data_filename)
-    plot_filled_pixels(data, nside, nest, save_filename)
+
+def download_data():
+
+    obs_to_download = list(set(obsids))
+    for obs in obs_to_download:
+        os.system('aws s3 cp s3://mwatest/diffuse_survey/fhd_rlb_GLEAM+Fornax_cal_decon_Nov2016/output_data/{}_uniform_Residual_I_HEALPix.fits /Healpix_fits/{}_uniform_Residual_I_HEALPix.fits'.format(obs, obs))
 
 
 def plot_healpix_tiling():
@@ -60,20 +76,6 @@ def plot_healpix_tiling():
     #          1131454296, 1131710032,
     #          1131477816, 1131731632, 1130778424, 1131463296, 1131459576,
     #          1131713512, 1131709912]
-
-    obsids = [1131478056, 1131564464, 1131477936, 1130787784, 1131477816,
-              1131733672, 1131562544, 1131733552, 1130785864, 1131475896,
-              1131559064, 1131558944, 1131731752, 1130782264, 1130783824,
-              1131470736, 1131557144, 1131470616, 1130780464, 1131470496,
-              1131468936, 1131553544, 1131726352, 1130778664, 1131468696,
-              1131724672, 1131551744, 1131465216, 1130776864, 1130776624,
-              1131463536, 1131549944, 1131463416, 1130773264, 1131463296,
-              1131461616, 1131548024, 1131461496, 1130773144, 1131461376,
-              1131717352, 1131544424, 1131717232, 1131459696, 1131459576,
-              1131456216, 1131542624, 1131456096, 1131715432, 1131715312,
-              1131711952, 1131540824, 1131454296, 1131713632, 1131454176,
-              1131710152, 1131537224, 1131710032, 1131710032, 1131709912,
-              1131535544, 1131535424, 1131535304, 1131710032, 1131709912]
 
     data = []
     for i, obs in enumerate(obsids):
@@ -138,38 +140,6 @@ def plot_healpix_tiling():
     cbar.ax.set_ylabel('Flux Density (Jy/sr)', rotation=270)  # label colorbar
 
     plt.savefig('/home/ubuntu/MWA/mosaicplot.png', format='png', dpi=1000)
-
-
-def plot_filled_pixels(data, nside, nest, save_filename):
-
-    fig, ax = plt.subplots()
-
-    # Collect Healpix pixels to plot
-    patches = []
-    colors = []
-    for point in data:
-        point.get_pixel_corners(nside, nest)
-        polygon = Polygon(zip(point.pix_corner_ras, point.pix_corner_decs))
-        patches.append(polygon)
-        if point.signal < 0.04:
-            colors.append(point.signal)
-        else:
-            colors.append(0.04)
-
-    collection = PatchCollection(patches, cmap='Greys_r', lw=0.04)
-    collection.set_array(np.array(colors))  # set the data colors
-    collection.set_edgecolor('face')  # make the face and edge colors match
-    ax.add_collection(collection)  # plot data
-    plt.xlabel('RA (deg)')
-    plt.ylabel('Dec (deg)')
-    plt.axis('equal')
-    ax.set_facecolor('black')  # make plot background black
-    plt.axis([14, -11, -37, -16])
-    plt.grid(which='both', zorder=10)
-    cbar = fig.colorbar(collection, ax=ax, extend='max')  # add colorbar
-    cbar.ax.set_ylabel('Flux Density (Jy/sr)', rotation=270)  # label colorbar
-
-    plt.savefig(save_filename, format='png', dpi=2000)
 
 
 def load_map(data_filename):
