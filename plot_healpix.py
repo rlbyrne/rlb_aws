@@ -75,7 +75,6 @@ def plot_healpix_tiling():
               1131711952, 1131540824, 1131454296, 1131713632, 1131454176,
               1131710152, 1131537224, 1131710032, 1131710032, 1131709912,
               1131535544, 1131535424, 1131535304, 1131710032, 1131709912]
-    obsids = list(set(obsids))  # remove duplicates
 
     data = []
     for i, obs in enumerate(obsids):
@@ -90,6 +89,7 @@ def plot_healpix_tiling():
         data.extend([data_point for data_point in obs_data if data_point.pixelnum in use_pixels])
 
     # Collect Healpix pixels to plot
+    print 'Gathering pixel corners.'
     patches = []
     colors = []
     for point in data:
@@ -98,6 +98,7 @@ def plot_healpix_tiling():
         patches.append(polygon)
         colors.append(point.signal)
 
+    print 'Plotting.'
     collection = PatchCollection(patches, cmap='Greys_r', lw=0.04)
     collection.set_array(np.array(colors))  # set the data colors
     collection.set_edgecolor('face')  # make the face and edge colors match
@@ -106,7 +107,7 @@ def plot_healpix_tiling():
     ax.add_collection(collection)  # plot data
 
     # plot lines between tiles
-    line_width = 2.0
+    line_width = 0.5
     color = 'gray'
     order = 8
     plt.plot([130, -45], [-10, -10], lw=line_width, c=color, zorder=order)
@@ -114,25 +115,25 @@ def plot_healpix_tiling():
     plt.plot([130, -45], [-30, -30], lw=line_width, c=color, zorder=order)
     plt.plot([130, -45], [-40, -40], lw=line_width, c=color, zorder=order)
     plt.plot([130, -45], [-50, -50], lw=line_width, c=color, zorder=order)
-    plt.plot([95, 95], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([85, 85], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([75, 75], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([65, 65], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([55, 55], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([45, 45], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([35, 35], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([25, 25], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([15, 15], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([5, 5], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([-5, -5], [-75, -20], lw=line_width, c=color, zorder=order)
-    plt.plot([-15, -15], [-75, -20], lw=line_width, c=color, zorder=order)
+    plt.plot([95, 95], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([85, 85], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([75, 75], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([65, 65], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([55, 55], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([45, 45], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([35, 35], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([25, 25], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([15, 15], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([5, 5], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([-5, -5], [-75, 20], lw=line_width, c=color, zorder=order)
+    plt.plot([-15, -15], [-75, 20], lw=line_width, c=color, zorder=order)
 
     plt.xlabel('RA (deg)')
     plt.ylabel('Dec (deg)')
     plt.axis('equal')
-    ax.set_facecolor('black')  # make plot background black
-    plt.axis([130, -45, -75, 20])
-    plt.grid(which='both', lw=1.0, zorder=10)
+    ax.set_facecolor('gray')  # make plot background gray
+    plt.axis([110, -30, -50, 0])
+    #plt.grid(which='both', lw=1.0, zorder=10)
     cbar = fig.colorbar(collection, ax=ax)  # add colorbar
     cbar.ax.set_ylabel('Flux Density (Jy/sr)', rotation=270)  # label colorbar
 
