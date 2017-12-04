@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# In-progress script that configures an AWS instance for running FHD
+
 #basic installations and updates:
 sudo apt-get -y update
 sudo apt-get -y install awscli

@@ -140,6 +140,8 @@ def plot_healpix_tiling():
 
     plt.savefig('/home/ubuntu/MWA/mosaicplot.png', format='png', dpi=1000)
 
+    os.system('aws s3 cp /home/ubuntu/MWA/mosaicplot.png s3://mwatest/diffuse_survey/mosaicplot.png')
+
 
 def load_map(data_filename):
 
@@ -201,4 +203,5 @@ class HealpixPixel:
 
 
 if __name__ == '__main__':
+    download_data()
     plot_healpix_tiling()
