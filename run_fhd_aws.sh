@@ -130,7 +130,7 @@ fi
 
 #Set typical slots needed for standard FHD firstpass if not set.
 if [ -z ${nslots} ]; then
-    nslots=10
+    nslots=16
 fi
 
 
