@@ -32,7 +32,7 @@ unset version
 #######Gathering the input arguments and applying defaults if necessary
 
 #Parse flags for inputs
-while getopts ":f:s:e:o:v:n:r:" option
+while getopts ":f:s:e:o:b:v:n:r:u:p:m:" option
 do
    case $option in
 	f) obs_file_name="$OPTARG";;	#text file of observation id's
@@ -40,12 +40,16 @@ do
 	e) ending_obs=$OPTARG;;		#ending observation in text file for choosing a range
     o) outdir=$OPTARG;;		#output directory for FHD
     b) s3_path=$OPTARG;;		#output bucket on S3
-    v) version=$OPTARG;;		#FHD folder name and case for rlb_fhd_versions
+    v) version=$OPTARG;;		#FHD folder name and case
 		#Example: nb_foo creates folder named fhd_nb_foo
 	n) nslots=$OPTARG;;		#Number of slots for grid engine
-    r) run_type=$OPTARG;;
+    r) run_type=$OPTARG;;		#Options are data or sim
+    u) user=$OPTARG;;		#User: options are rlb (default) or nb
+    p) uvfits_s3_loc=$OPTARG;;		#Path to uvfits files on S3
+    m) metafits_s3_loc=$OPTARG;;		#Path to metafits files on S3
 	\?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
-	    echo "-v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation))."
+	    echo "-b (output bucket on S3), -v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation)), "
+        echo "-u (user), -p (path to uvfits files on S3), -m (path to metafits files on S3)."
 	    exit 1;;
 	:) echo "Missing option argument for input flag"
 	   exit 1;;
@@ -88,6 +92,20 @@ else
     echo Using output directory: $outdir
 fi
 
+if [ -z ${uvfits_s3_loc} ]; then
+    uvfits_s3_loc=s3://mwapublic/uvfits/4.1
+else
+    #strip the last / if present in uvfits filepath
+    uvfits_s3_loc=${uvfits_s3_loc%/}
+fi
+
+if [ -z ${metafits_s3_loc} ]; then
+    metafits_s3_loc=s3://mwatest/metafits/4.1
+else
+    #strip the last / if present in metafits filepath
+    metafits_s3_loc=${metafits_s3_loc%/}
+fi
+
 if [ -z ${s3_path} ]
 then
     s3_path=s3://mwatest/diffuse_survey
@@ -100,7 +118,6 @@ fi
 
 logdir=~/grid_out
 
-#Use default version if not supplied.
 if [ -z ${version} ]; then
    echo Please specify a version, e.g, yourinitials_test
    exit 1
@@ -114,10 +131,23 @@ if [ ${run_type} != 'data' ] && [ ${run_type} != 'sim' ]; then
     exit 1
 fi
 
+if [ -z ${user} ]; then
+    user='rlb'
+fi
+if [ ${user} != 'rlb' ] && [ ${user} != 'nb' ]; then
+    echo Invalid user. Option are -u rlb and -u nb
+    exit 1
+fi
+
 if [ $run_type == 'sim' ]; then
     versions_script='rlb_fhd_sim_versions'
 else
-    versions_script='rlb_fhd_versions'
+    if [ $user == 'nb' ]; then
+        versions_script='nb_eor_firstpass_versions'
+    fi
+    if [ $user == 'rlb' ]; then
+        versions_script='rlb_fhd_versions'
+    fi
 fi
 
 if grep -q \'${version}\' ~/MWA/FHD/Observations/${versions_script}.pro
@@ -197,5 +227,5 @@ done
 
 for obs_id in "${good_obs_list[@]}"
 do
-   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id $versions_script &
+   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path} -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh $obs_id $versions_script $uvfits_s3_loc $metafits_s3_loc &
 done

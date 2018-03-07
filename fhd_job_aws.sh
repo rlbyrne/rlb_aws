@@ -10,13 +10,14 @@ echo JOBID ${JOB_ID}
 echo TASKID ${SGE_TASK_ID}
 obs_id=$1
 versions_script=$2
+uvfits_s3_loc=$3
+metafits_s3_loc=$4
 echo OBSID ${obs_id}
 echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 echo PUBLIC IP ${myip}
 
-uvfits_s3_loc=s3://mwapublic/uvfits/4.1
-metafits_s3_loc=s3://mwatest/metafits/4.1
+
 
 #strip the last / if present in output directory filepath
 outdir=${outdir%/}
