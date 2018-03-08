@@ -5,6 +5,7 @@
 #basic installations and updates:
 sudo apt-get -y update
 sudo apt-get -y install awscli
+sudo apt-get -y install git
 aws configure
 sudo apt-get -y install python-pip python-dev build-essential
 sudo pip install --upgrade pip
@@ -31,7 +32,9 @@ tar -xvf ~/FHD_install.tar.gz
 sudo bash ~/FHD_install/Miniconda2-latest-Linux-x86_64.sh -b #-b runs in batch mode (no user input required)
 echo 'export PATH="/home/ubuntu/miniconda2/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
-
+conda install astropy
+conda config --add channels conda-forge
+conda install healpy
 
 #install IDL
 sudo apt-get -y install xorg openbox
@@ -53,7 +56,9 @@ sudo unzip ~/FHD_install/astron.zip -d ~/MWA/astron
 sudo unzip ~/FHD_install/coyoteprograms.zip -d ~/MWA/coyote
 sudo mv ~/FHD_install/MWA_Tools ~/MWA/MWA_Tools
 sudo mv ~/FHD_install/FHD ~/MWA/FHD
+cd ~/MWA/FHD && git pull && cd -
 sudo mv ~/FHD_install/rlb_aws ~/MWA/rlb_aws
+cd ~/MWA/rlb_aws && git pull && cd -
 tar -xvf ~/FHD_install/Healpix_3.20_2014Dec05.tar.gz -C ~/MWA
 
 echo 'export PATH="/home/ubuntu/MWA/rlb_aws:$PATH"' >> ~/.bashrc
