@@ -70,7 +70,7 @@ fi
 #Default evenodd if not set.
 if [ -z ${min_size} ]
 then 
-    min_size=4000000000
+    min_size=4500000000
 fi
 ############End of check inputs
 
@@ -83,7 +83,7 @@ ls_output_size=( $(aws s3 ls ${FHDdir}/Healpix/ | tr -s ' ' | cut -d' ' -f3) )
 ls_output_filename=( $(aws s3 ls ${FHDdir}/Healpix/ | tr -s ' ' | cut -d' ' -f4) )
 
 #Check that the size of the Healpix cubes are greater than the min
-i=1
+i=0
 unset miss_flag
 for file_size in "${ls_output_size[@]}"
 do
