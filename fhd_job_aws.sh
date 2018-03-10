@@ -112,6 +112,10 @@ kill $(jobs -p) #kill fhd_on_aws_backup.sh
 aws s3 mv ${outdir}/fhd_${version}/ ${s3_path}/fhd_${version}/ --recursive \
 --exclude "*" --include "*${obs_id}*" --quiet
 
+# Remove uvfits and metafits from the instance
+sudo rm /uvfits/${obs_id}.uvfits
+sudo rm /uvfits/${obs_id}.metafits
+
 echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 
 # Copy gridengine stdout to S3
