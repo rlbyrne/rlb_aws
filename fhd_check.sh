@@ -8,7 +8,6 @@
 # A file path to a text file listing observation ids is needed. Obs ids are
 # assumed to be seperated by newlines.
 # 
-# LOG
 # Written by Nichole Barry
 #
 # NOTE 
@@ -16,13 +15,14 @@
 ######################################################################################
 
 #Parse flags for inputs
-while getopts ":d:f:e:p:" option
+while getopts ":d:f:e:p:m:" option
 do
    case $option in
         d) FHDdir="$OPTARG";;			      #file path to fhd directory with cubes
-        f) integrate_list="$OPTARG";;		#txt file of obs ids or subcubes or a single obsid
+        f) check_list="$OPTARG";;		#txt file of obs ids or subcubes or a single obsid
         e) evenodd="$OPTARG";;          #OPTIONAL: array of even-odd names
         p) pol="$OPTARG";;              #OPTIONAL: array of pol names
+	m) min_size="$OPTARG";;         #OPTIONAL: min size of HEALPix cubes, in B
         \?) echo "Unknown option: Accepted flags are -d (file path to fhd directory with cubes), "
             echo "-f (obs list), -e (array of even-odd), -p (array of pol)"
             exit 1;;
@@ -42,11 +42,11 @@ then
    exit 1
 fi
 
-#Throw error if file path does not exist
-if [ ! -d "$FHDdir" ]
-then
-   echo "Argument after flag -d is not a real directory. Argument should be the file path to the location of cubes to integrate."
-   exit 1
+#Remove extraneous / on FHD dir if present
+if [[ $FHDdir == */ ]]
+then 
+   FHDdir=${FHDdir%?}
+fi
 
 #Error if check_list is not set
 if [ -z ${check_list} ]
@@ -56,28 +56,60 @@ then
 fi
 
 #Default evenodd if not set.
-if [ -z ${evenodd} ]; then evenodd=(even odd); fi
+if [ -z ${evenodd} ]
+then
+    evenodd=(even odd)
+fi
 
 #Default evenodd if not set.
-if [ -z ${pol} ]; then pol=(XX YY); fi
+if [ -z ${pol} ]
+then
+    pol=(XX YY)
+fi
+
+#Default evenodd if not set.
+if [ -z ${min_size} ]
+then 
+    min_size=4000000000
+fi
 ############End of check inputs
 
 n_evenodd=${#evenodd[@]}
 n_pol=${#pol[@]}
 num_files=$(($n_evenodd * $n_pol))
 
-#Check that all Healpix cubes are present, print if they are not
-while read line
+#aws s3 ls command cannot use wildcards, hence this workaround  - 3/2018
+ls_output_size=( $(aws s3 ls ${FHDdir}/Healpix/ | tr -s ' ' | cut -d' ' -f3) )
+ls_output_filename=( $(aws s3 ls ${FHDdir}/Healpix/ | tr -s ' ' | cut -d' ' -f4) )
+
+#Check that the size of the Healpix cubes are greater than the min
+i=1
+unset miss_flag
+for file_size in "${ls_output_size[@]}"
 do
-    unset miss_flag
-    if [ "(aws s3 ls -1qd ${FHDdir}/Healpix/${line}*cube*.sav | wc -l)" != $num_files ]
+    if [[ $file_size -lt "$min_size" ]]
     then
         if [ -z ${miss_flag} ]
         then
-            echo Some HEALPix cubes are missing for 
+            echo HEALPix cubes smaller than specified min_size:
+            miss_flag=1
+        fi
+        echo ${ls_output_filename[$i]}
+    fi
+    (( ++i ))
+done
+
+#Check that all Healpix cubes are present, print if they are not
+unset miss_flag
+while read line
+do
+    if [[ "$(grep -o $line <<< ${ls_output_filename[*]} | wc -l)" -ne "$num_files" ]]
+    then
+        if [ -z ${miss_flag} ]
+        then
+            echo Some HEALPix cubes are missing:
             miss_flag=1
         fi
         echo $line
-	  fi
-    done
-done < $integrate_list
+    fi
+done < $check_list
