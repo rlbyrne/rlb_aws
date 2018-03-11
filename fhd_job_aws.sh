@@ -109,8 +109,15 @@ fi
 kill $(jobs -p) #kill fhd_on_aws_backup.sh
 
 # Move FHD outputs to S3
+i=1  #initialize counter
 aws s3 mv ${outdir}/fhd_${version}/ ${s3_path}/fhd_${version}/ --recursive \
 --exclude "*" --include "*${obs_id}*" --quiet
+while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+    let "i += 1"  #increment counter
+    >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+    aws s3 mv ${outdir}/fhd_${version}/ ${s3_path}/fhd_${version}/ \
+    --recursive --exclude "*" --include "*${obs_id}*" --quiet
+done
 
 # Remove uvfits and metafits from the instance
 sudo rm /uvfits/${obs_id}.uvfits
