@@ -71,7 +71,7 @@ ls_output_filename_metafits=( $(aws s3 ls ${s3_metafits}/ | tr -s ' ' | cut -d' 
 unset miss_flag
 while read line
 do
-    if ! (grep -o $line <<< ${ls_output_filename_uvfits[*]} | wc -l) 
+    if [[ "$(grep -o $line <<< ${ls_output_filename_uvfits[*]} | wc -l)" -eq 0 ]]
     then
         if [ -z ${miss_flag} ]
         then
@@ -86,7 +86,7 @@ done < $check_list
 unset miss_flag
 while read line
 do
-    if ! (grep -o $line <<< ${ls_output_filename_metafits[*]} | wc -l) 
+    if [[ "$(grep -o $line <<< ${ls_output_filename_metafits[*]} | wc -l)" -eq 0 ]]
     then
         if [ -z ${miss_flag} ]
         then
