@@ -8,10 +8,6 @@
 
 echo JOBID ${JOB_ID}
 echo TASKID ${SGE_TASK_ID}
-obs_id=$1
-versions_script=$2
-uvfits_s3_loc=$3
-metafits_s3_loc=$4
 echo OBSID ${obs_id}
 echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
