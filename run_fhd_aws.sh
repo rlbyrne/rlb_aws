@@ -93,7 +93,7 @@ else
 fi
 
 if [ -z ${uvfits_s3_loc} ]; then
-    uvfits_s3_loc=s3://mwapublic/uvfits/4.1
+    uvfits_s3_loc=s3://mwapublic/uvfits/5.1
 else
     #strip the last / if present in uvfits filepath
     uvfits_s3_loc=${uvfits_s3_loc%/}
