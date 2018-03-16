@@ -13,7 +13,33 @@ echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 echo PUBLIC IP ${myip}
 
-
+#set defaults
+if [ -z ${nslots} ]; then
+    nslots=10
+fi
+if [ -z ${outdir} ]; then
+    outdir=/FHD_output
+fi
+if [ -z ${s3_path} ]; then
+    s3_path=s3://mwatest/diffuse_survey
+fi
+if [ -z ${versions_script} ]; then
+    versions_script='rlb_fhd_versions'
+fi
+if [ -z ${uvfits_s3_loc} ]; then
+    uvfits_s3_loc=s3://mwapublic/uvfits/4.1
+fi
+if [ -z ${metafits_s3_loc} ]; then
+    metafits_s3_loc=s3://mwatest/metafits/4.1
+fi
+if [ -z ${version} ]; then
+    >&2 echo "ERROR: no version provided"
+    exit 1
+fi
+if [ -z ${obs_id} ]; then
+    >&2 echo "ERROR: no obs ID provided"
+    exit 1
+fi
 
 #strip the last / if present in output directory filepath
 outdir=${outdir%/}
