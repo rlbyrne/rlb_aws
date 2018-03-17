@@ -164,7 +164,7 @@ if [ "$ps_only" -ne "1" ]; then
 	    errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 	    for evenodd in even odd; do
 		for pol in XX YY; do 
-	    	    message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integrate_job_aws.sh)
+	    	    message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integration_job_aws.sh)
 	    	    message=($message)
 	    	    if [ "$chunk" -eq 1 ] && [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist=${message[2]}; else idlist=${idlist},${message[2]}; fi
 		done
@@ -178,7 +178,7 @@ if [ "$ps_only" -ne "1" ]; then
         errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 	for evenodd in even odd; do
 	    for pol in XX YY; do 
-        	message=$(qsub -hold_jid $idlist -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$sub_cubes_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integrate_job_aws.sh)
+        	message=$(qsub -hold_jid $idlist -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$sub_cubes_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integration_job_aws.sh)
         	message=($message)
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_master=${message[2]}; else idlist_master=${idlist_master},${message[2]}; fi
 	    done
@@ -206,7 +206,7 @@ if [ "$ps_only" -ne "1" ]; then
         errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 	for evenodd in even odd; do
 	    for pol in XX YY; do
-        	message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integrate_job_aws.sh)
+        	message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integration_job_aws.sh)
        		message=($message)
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${message[2]}; else idlist_int=${idlist_int},${message[2]}; fi
 	    done
@@ -234,10 +234,10 @@ errfile=/ps/logs/${version}_ps_err
 
 
 if [ ! -d /ps ]; then
-    mkdir /ps
+    sudo mkdir /ps
 fi
 if [ ! -d /ps/logs ]; then
-    mkdir /ps/logs
+    sudo mkdir /ps/logs
 fi
 
 ###Polarization definitions
