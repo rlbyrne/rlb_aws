@@ -210,6 +210,7 @@ if [ "$ps_only" -ne "1" ]; then
 
         # Just one integrator
         mv /Healpix/${version}_int_chunk1.txt /Healpix/${version}_int_chunk0.txt
+        i=0
         chunk=0
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
         outfile=/Healpix/${version}_int_chunk${chunk}_out.log
@@ -220,14 +221,22 @@ if [ "$ps_only" -ne "1" ]; then
 	    for pol in XX YY; do
         	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
        		message=($message)
-                if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${message[2]}; else idlist_int=${idlist_int},${message[2]}; fi
+                ((i++))
 	    done
 	done
         hold_str="-hold_jid ${idlist_int}"
 
         # Wait on subprocesses to finish before proceeding
-        wait $pids
+        for cube_i in {0..$i}
+        do 
+            status=$(qstat | grep " ${idlist_int[$cube_i]} ")
+            while [ -n "$status" ] # while $status is not empty
+	    do
+	    	    sleep 60
+		    status=$(qstat | grep " ${idlist_int[$cube_i]} ")
+	    done
+        done
 
         # Move integration logs to S3
         i=1  #initialize counter
