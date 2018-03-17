@@ -162,6 +162,8 @@ if [ "$ps_only" -ne "1" ]; then
 	    chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
 	    outfile=/Healpix/${version}_int_chunk${chunk}_out.log
 	    errfile=/Healpix/${version}_int_chunk${chunk}_err.log
+            touch $outfile
+            touch $errfile
 	    for evenodd in even odd; do
 		for pol in XX YY; do 
 	    	    message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
@@ -176,6 +178,8 @@ if [ "$ps_only" -ne "1" ]; then
         chunk=0
         outfile=/Healpix/${version}_int_chunk${chunk}_out.log
         errfile=/Healpix/${version}_int_chunk${chunk}_err.log
+        touch $outfile
+        touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do 
 	    	message=$(qsub -hold_jid $idlist -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
@@ -204,6 +208,8 @@ if [ "$ps_only" -ne "1" ]; then
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
         outfile=/Healpix/${version}_int_chunk${chunk}_out.log
         errfile=/Healpix/${version}_int_chunk${chunk}_err.log
+        touch $outfile
+        touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do
         	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
@@ -231,7 +237,8 @@ fi
 
 outfile=/ps/logs/${version}_ps_out
 errfile=/ps/logs/${version}_ps_err
-
+touch $outfile
+touch $errfile
 
 if [ ! -d /ps ]; then
     sudo mkdir /ps
