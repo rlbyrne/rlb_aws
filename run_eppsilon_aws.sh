@@ -24,7 +24,7 @@
 ######################################################################################
 
 #Parse flags for inputs
-while getopts ":d:f:n:p:h:t:" option
+while getopts ":d:f:n:p:h:i:" option
 do
    case $option in
         d) FHDdir="$OPTARG";;			#file path to fhd directory with cubes
@@ -35,7 +35,7 @@ do
 	i) image_filter=$OPTARG;;               #Apply an image window filter during eppsilon
         \?) echo "Unknown option: Accepted flags are -d (file path to fhd directory with cubes), -f (obs list or subcube path or single obsid), "
 	    echo "-n (number of slots), -p (make ps only), "
-	    echo "-h (hold int/ps script on a running job id), and -t (apply a window filter during ps),"
+	    echo "-h (hold int/ps script on a running job id), and -i (apply a window filter during ps),"
             exit 1;;
         :) echo "Missing option argument for input flag"
            exit 1;;
