@@ -150,6 +150,7 @@ else
 fi
 
 unset idlist
+unset pids
 if [ "$ps_only" -ne "1" ]; then   
     if [ "$nchunk" -gt "1" ]; then
 
@@ -168,6 +169,7 @@ if [ "$ps_only" -ne "1" ]; then
 		for pol in XX YY; do 
 	    	    message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
 	    	    message=($message)
+                    if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
 	    	    if [ "$chunk" -eq 1 ] && [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist=${message[2]}; else idlist=${idlist},${message[2]}; fi
 		done
 	    done
@@ -184,10 +186,14 @@ if [ "$ps_only" -ne "1" ]; then
 	    for pol in XX YY; do 
 	    	message=$(qsub -hold_jid $idlist -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
         	message=($message)
+                if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_master=${message[2]}; else idlist_master=${idlist_master},${message[2]}; fi
 	    done
 	done
 	hold_str="-hold_jid ${idlist_master}"
+
+        # Wait on subprocesses to finish before proceeding
+        wait $pids
 
         # Move integration logs to S3
         i=1  #initialize counter
@@ -214,10 +220,14 @@ if [ "$ps_only" -ne "1" ]; then
 	    for pol in XX YY; do
         	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
        		message=($message)
+                if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${message[2]}; else idlist_int=${idlist_int},${message[2]}; fi
 	    done
 	done
         hold_str="-hold_jid ${idlist_int}"
+
+        # Wait on subprocesses to finish before proceeding
+        wait $pids
 
         # Move integration logs to S3
         i=1  #initialize counter
@@ -261,6 +271,7 @@ n_cube=${#cube_type_arr[@]}
 
 hold_str_int=$hold_str
 unset id_list
+unset pids
 
 for pol in "${pol_arr[@]}"
 do
@@ -277,6 +288,8 @@ do
 
             message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
             message=($message)
+
+            if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
             id=${message[2]}
             if [ -z "$id_list" ]; then id_list=${message[2]};else id_list=${id_list},${message[2]};fi
 
@@ -290,6 +303,10 @@ done
 
 #final plots
 qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile}_plots.log -o ${outfile}_plots.log -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
+if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
+
+# Wait for subprocesses to finish before proceeding
+wait $pids
 
 # Move integration logs to S3
 i=1  #initialize counter
