@@ -105,36 +105,13 @@ fi
 
 first_line_len=$(echo ${#first_line})
 
-rm -f ${FHDdir}/Healpix/${version}_int_chunk*.txt # remove any old chunk files lying around
-
-exit_flag=0
-
-#Check that cubes or integrated cubes are present, print and error if they are not
-if [ "$ps_only" -ne "1" ]; then 	#only if we're integrating
-while read line
-do
-   if [ "$first_line_len" == 10 ]; then
-      if ! ls $FHDdir/Healpix/$line*cube*.sav &> /dev/null; then
-         echo Missing cube for obs $line
-	 if [ -z "$hold" ]; then
-	    exit_flag=1
-	 fi
-      fi
-   else
-      if [[ "$first_line" != */* ]]; then
-	 check=$FHDdir/Healpix/$line*.sav
-      else
-	 check=$FHDdir/$line*.sav
-      fi
-      if ! ls $check &> /dev/null; then
-	 echo Missing save file for $line
-	 exit_flag=1
-      fi
-   fi
-done < $integrate_list
+#create uvfits download location with full permissions
+if [ -d /Healpix ]; then
+    sudo chmod -R 777 /Healpix
+    rm -f /Healpix/${version}_int_chunk*.txt # remove any old chunk files lying around
+else
+    sudo mkdir -m 777 /Healpix
 fi
-
-if [ "$exit_flag" -eq 1 ]; then exit 1; fi
 
 if [ "$first_line_len" == 10 ]; then
     
@@ -143,7 +120,7 @@ if [ "$first_line_len" == 10 ]; then
     while read line
     do
         ((chunk=obs/100+1))		#integer division results in chunks labeled 0 (first 100), 1 (second 100), etc
-        echo $line >> ${FHDdir}/Healpix/${version}_int_chunk${chunk}.txt	#put that obs id into the right txt file
+        echo $line >> /Healpix/${version}_int_chunk${chunk}.txt	#put that obs id into the right txt file
         ((obs++))			#increment obs for the next run through
     done < $integrate_list
     nchunk=$chunk 			#number of chunks we ended up with
@@ -155,7 +132,7 @@ else
         chunk=0 
         while read line
         do
-            echo Healpix/$line >> ${FHDdir}/Healpix/${version}_int_chunk${chunk}.txt        #put that obs id into the right txt file
+            echo Healpix/$line >> /Healpix/${version}_int_chunk${chunk}.txt        #put that obs id into the right txt file
         done < $integrate_list
         nchunk=$chunk                       #number of chunks we ended up with
     
@@ -164,7 +141,7 @@ else
         chunk=0 
         while read line
         do
-            echo $line >> ${FHDdir}/Healpix/${version}_int_chunk${chunk}.txt        #put that obs id into the right txt file
+            echo $line >> /Healpix/${version}_int_chunk${chunk}.txt        #put that obs id into the right txt file
         done < $integrate_list
         nchunk=$chunk                       #number of chunks we ended up with
 
@@ -177,17 +154,17 @@ if [ "$ps_only" -ne "1" ]; then
     if [ "$nchunk" -gt "1" ]; then
 
         # set up files for master integration
-        sub_cubes_list=${FHDdir}/Healpix/${version}_sub_cubes.txt
+        sub_cubes_list=/Healpix/${version}_sub_cubes.txt
         rm $sub_cubes_list # remove any old lists
 
         # launch separate chunks
         for chunk in $(seq 1 $nchunk); do
-	    chunk_obs_list=${FHDdir}/Healpix/${version}_int_chunk${chunk}.txt
-	    outfile=${FHDdir}/Healpix/${version}_int_chunk${chunk}_out.log
-	    errfile=${FHDdir}/Healpix/${version}_int_chunk${chunk}_err.log
+	    chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
+	    outfile=/Healpix/${version}_int_chunk${chunk}_out.log
+	    errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 	    for evenodd in even odd; do
 		for pol in XX YY; do 
-	    	    message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots ${PSpath}ps_wrappers/integrate_job.sh)
+	    	    message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integrate_job_aws.sh)
 	    	    message=($message)
 	    	    if [ "$chunk" -eq 1 ] && [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist=${message[2]}; else idlist=${idlist},${message[2]}; fi
 		done
@@ -197,48 +174,70 @@ if [ "$ps_only" -ne "1" ]; then
 
         # master integrator
         chunk=0
-        outfile=${FHDdir}/Healpix/${version}_int_chunk${chunk}_out.log
-        errfile=${FHDdir}/Healpix/${version}_int_chunk${chunk}_err.log
+        outfile=/Healpix/${version}_int_chunk${chunk}_out.log
+        errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 	for evenodd in even odd; do
 	    for pol in XX YY; do 
-        	message=$(qsub -hold_jid $idlist -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$sub_cubes_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots ${PSpath}ps_wrappers/integrate_job.sh)
+        	message=$(qsub -hold_jid $idlist -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$sub_cubes_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integrate_job_aws.sh)
         	message=($message)
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_master=${message[2]}; else idlist_master=${idlist_master},${message[2]}; fi
 	    done
 	done
 	hold_str="-hold_jid ${idlist_master}"
 
+        # Move integration logs to S3
+        i=1  #initialize counter
+        aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+         --exclude "*" --include "*int_chunk*" --include "*.log" --quiet
+        while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+            let "i += 1"  #increment counter
+            >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+            aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+             --exclude "*" --include "*int_chunk*" --include "*.log" --quiet
+        done
+
     else
 
         # Just one integrator
-        mv ${FHDdir}/Healpix/${version}_int_chunk1.txt ${FHDdir}/Healpix/${version}_int_chunk0.txt
+        mv /Healpix/${version}_int_chunk1.txt /Healpix/${version}_int_chunk0.txt
         chunk=0
-        chunk_obs_list=${FHDdir}/Healpix/${version}_int_chunk${chunk}.txt
-        outfile=${FHDdir}/Healpix/${version}_int_chunk${chunk}_out.log
-        errfile=${FHDdir}/Healpix/${version}_int_chunk${chunk}_err.log
+        chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
+        outfile=/Healpix/${version}_int_chunk${chunk}_out.log
+        errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 	for evenodd in even odd; do
 	    for pol in XX YY; do
-        	message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots ${PSpath}ps_wrappers/integrate_job.sh)
+        	message=$(qsub ${hold_str} -l h_vmem=$mem,h_stack=512k,h_rt=$wallclock_time -V -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe chost $nslots integrate_job_aws.sh)
        		message=($message)
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${message[2]}; else idlist_int=${idlist_int},${message[2]}; fi
 	    done
 	done
         hold_str="-hold_jid ${idlist_int}"
 
+        # Move integration logs to S3
+        i=1  #initialize counter
+        aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+         --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
+        while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+            let "i += 1"  #increment counter
+            >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+            aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+             --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
+        done
+
     fi
 else
     echo "Running only ps code" # Just PS if flag has been set
 fi
 
-outfile=${FHDdir}/ps/logs/${version}_ps_out
-errfile=${FHDdir}/ps/logs/${version}_ps_err
+outfile=/ps/logs/${version}_ps_out
+errfile=/ps/logs/${version}_ps_err
 
 
-if [ ! -d ${FHDdir}/ps ]; then
-    mkdir ${FHDdir}/ps
+if [ ! -d /ps ]; then
+    mkdir /ps
 fi
-if [ ! -d ${FHDdir}/ps/logs ]; then
-    mkdir ${FHDdir}/ps/logs
+if [ ! -d /ps/logs ]; then
+    mkdir /ps/logs
 fi
 
 ###Polarization definitions
@@ -284,3 +283,15 @@ done
 
 #final plots
 qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile}_plots.log -o ${outfile}_plots.log -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
+
+# Move integration logs to S3
+i=1  #initialize counter
+aws s3 mv /ps/logs ${FHDdir}/ps/logs --recursive \
+--exclude "*" --include "*plots.log" --quiet
+
+while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+    let "i += 1"  #increment counter
+    >&2 echo "Moving eppsilon logs to S3 failed. Retrying (attempt $i)."
+    aws s3 mv /ps/logs ${FHDdir}/ps/logs --recursive \
+     --exclude "*" --include "*plots.log" --quiet
+done
