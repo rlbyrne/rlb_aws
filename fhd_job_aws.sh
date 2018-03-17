@@ -149,10 +149,12 @@ echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 
 # Copy gridengine stdout to S3
 aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
-${s3_path}/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
+${s3_path}/fhd_${version}/grid_out/fhd_job_aws.sh.o${JOB_ID}_${myip}.txt \
+--quiet
 
 # Copy gridengine stderr to S3
 aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
-${s3_path}/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
+${s3_path}/fhd_${version}/grid_out/fhd_job_aws.sh.e${JOB_ID}_${myip}.txt \
+--quiet
 
 exit $error_mode
