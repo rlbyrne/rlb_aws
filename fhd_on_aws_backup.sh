@@ -17,12 +17,12 @@ while true; do
         # Copy gridengine stdout to S3
         aws s3 cp ~/grid_out/fhd_job_aws.sh.o${JOB_ID} \
         ${s3_path}/fhd_${version}/grid_out/\
-        fhd_job_aws.sh.o${JOB_ID}_${myip} --quiet
+        fhd_job_aws.sh.o${JOB_ID}_${myip}.txt --quiet
 
         # Copy gridengine stderr to S3
         aws s3 cp ~/grid_out/fhd_job_aws.sh.e${JOB_ID} \
         ${s3_path}/fhd_${version}/grid_out/\
-        fhd_job_aws.sh.e${JOB_ID}_${myip} --quiet
+        fhd_job_aws.sh.e${JOB_ID}_${myip}.txt --quiet
 
         # Copy FHD outputs to S3
         j=1  #initialize counter
