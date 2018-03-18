@@ -219,13 +219,13 @@ if [ "$ps_only" -ne "1" ]; then
         touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do
-                job_id=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh) | tail -n +2 | cut -d " " -f 3
-        	#message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
-       		#message=($message)
-		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${job_id}; else idlist_int=${idlist_int},${job_id}; fi
+        	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
+       		message=($message)
                 ((i++))
 	    done
 	done
+
+        idlist_int=(`qstat | grep "integratio" | cut -b -7`)
         hold_str="-hold_jid ${idlist_int}"
 
         # Wait on subprocesses to finish before proceeding
@@ -255,10 +255,6 @@ else
     echo "Running only ps code" # Just PS if flag has been set
 fi
 
-outfile=/ps/logs/${version}_ps_out
-errfile=/ps/logs/${version}_ps_err
-touch $outfile
-touch $errfile
 
 if [ ! -d /ps ]; then
     sudo mkdir /ps
@@ -266,6 +262,11 @@ fi
 if [ ! -d /ps/logs ]; then
     sudo mkdir /ps/logs
 fi
+
+outfile=/ps/logs/${version}_ps_out
+errfile=/ps/logs/${version}_ps_err
+touch $outfile
+touch $errfile
 
 ###Polarization definitions
 pol_arr=('xx' 'yy')
@@ -296,16 +297,18 @@ do
                 hold_str_temp="-hold_jid ${weights_id}"
             fi
 
-            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
+            cube_type_letter=${cube_type:0:1}
+
+            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
             message=($message)
 
             if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
-            id=${message[2]}
-            if [ -z "$id_list" ]; then id_list=${message[2]};else id_list=${id_list},${message[2]};fi
+            job_id=(`qstat | grep "${cube_type_letter}_${pol}_${evenodd}" | cut -b -7`)
+            if [ -z "$id_list" ]; then id_list=${job_id};else id_list=${id_list},${job_id};fi
 
             if [ $cube_type = "weights" ]
             then
-                weights_id=$id
+                weights_id=$job_id
             fi
         done
     done
@@ -313,10 +316,14 @@ done
 
 #final plots
 qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile}_plots.log -o ${outfile}_plots.log -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
-if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
 
-# Wait for subprocesses to finish before proceeding
-wait $pids
+# Wait on subprocesses to finish before proceeding
+status=$(qstat | grep)
+while [ -n "$status" ] # while $status is not empty
+do
+    sleep 120
+    status=$(qstat | grep)
+done
 
 # Move integration logs to S3
 i=1  #initialize counter
