@@ -110,19 +110,19 @@ echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 
 # Move integration logs to S3
 i=1  #initialize counter
-aws s3 mv /ps/logs ${file_path_cubes}/ps/logs --recursive \
+aws s3 mv ~/grid_out/ ${file_path_cubes}/ps/logs --recursive \
 --exclude "*" --include "*_xx_*" --quiet
-aws s3 mv /ps/logs ${file_path_cubes}/ps/logs --recursive \
+aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
 --exclude "*" --include "*_yy_*" --quiet
-aws s3 mv /ps/logs ${file_path_cubes}/ps/logs --recursive \
+aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
 --exclude "*" --include "*_plots*" --quiet
 while [ $? -ne 0 ] && [ $i -lt 10 ]; do
     let "i += 1"  #increment counter
     >&2 echo "Moving eppsilon logs to S3 failed. Retrying (attempt $i)."
-    aws s3 mv /ps/logs ${file_path_cubes}/ps/logs --recursive \
+    aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
      --exclude "*" --include "*_xx_*" --quiet
-    aws s3 mv /ps/logs ${file_path_cubes}/ps/logs --recursive \
+    aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
      --exclude "*" --include "*_yy_*" --quiet
-    aws s3 mv /ps/logs ${file_path_cubes}/ps/logs --recursive \
+    aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
      --exclude "*" --include "*_plots*" --quiet
 done

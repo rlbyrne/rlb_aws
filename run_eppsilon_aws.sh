@@ -149,6 +149,9 @@ else
 
 fi
 
+outfile=~/grid_out
+errfile=~/grid_out
+
 unset idlist
 unset pids
 if [ "$ps_only" -ne "1" ]; then   
@@ -215,8 +218,6 @@ if [ "$ps_only" -ne "1" ]; then
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
         #outfile=/Healpix/${version}_int_chunk${chunk}_out.log
         #errfile=/Healpix/${version}_int_chunk${chunk}_err.log
-        outfile=/Healpix/
-        errfile=/Healpix/
 #        touch $outfile
 #        touch $errfile
 	for evenodd in even odd; do
@@ -267,8 +268,8 @@ fi
 
 #outfile=/ps/logs/${version}_ps_out
 #errfile=/ps/logs/${version}_ps_err
-outfile=/ps/logs/
-errfile=/ps/logs/
+outfile=~/grid_out
+errfile=~/grid_out
 
 ###Polarization definitions
 pol_arr=('xx' 'yy')
@@ -301,7 +302,8 @@ do
 
             cube_type_letter=${cube_type:0:1}
 
-            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
+            #message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
+            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
             message=($message)
 
             if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
