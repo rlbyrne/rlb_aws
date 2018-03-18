@@ -52,7 +52,7 @@ else
 fi
 
 
-if [ ! -z ${healpix_found} ]
+if [ -z ${healpix_found} ]
 then
 
     unset exit_flag
