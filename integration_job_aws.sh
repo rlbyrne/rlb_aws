@@ -138,11 +138,23 @@ then
         ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav --quiet
     done
 
+    echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
+
+    # Move integration logs to S3
+    i=1  #initialize counter
+    aws s3 mv /Healpix/ ${file_path_cubes}/Healpix/ --recursive \
+     --exclude "*" --include "*integratio*" --quiet
+    while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+        let "i += 1"  #increment counter
+        >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+        aws s3 mv /Healpix/ ${file_path_cubes}/Healpix/ --recursive \
+         --exclude "*" --include "*integratio*" --quiet
+    done
+
     # Remove obsid cubes from the instance
     while read obs_id
     do
         sudo rm /Healpix/${obs_id}_${evenodd}_cube${pol^^}.sav
     done < $obs_list_path
 
-    echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 fi

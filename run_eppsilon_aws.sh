@@ -213,10 +213,12 @@ if [ "$ps_only" -ne "1" ]; then
         i=0
         chunk=0
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
-        outfile=/Healpix/${version}_int_chunk${chunk}_out.log
-        errfile=/Healpix/${version}_int_chunk${chunk}_err.log
-        touch $outfile
-        touch $errfile
+        #outfile=/Healpix/${version}_int_chunk${chunk}_out.log
+        #errfile=/Healpix/${version}_int_chunk${chunk}_err.log
+        outfile=/Healpix/
+        errfile=/Healpix/
+#        touch $outfile
+#        touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do
         	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
@@ -263,10 +265,10 @@ if [ ! -d /ps/logs ]; then
     sudo mkdir /ps/logs
 fi
 
-outfile=/ps/logs/${version}_ps_out
-errfile=/ps/logs/${version}_ps_err
-touch $outfile
-touch $errfile
+#outfile=/ps/logs/${version}_ps_out
+#errfile=/ps/logs/${version}_ps_err
+outfile=/ps/logs/
+errfile=/ps/logs/
 
 ###Polarization definitions
 pol_arr=('xx' 'yy')
@@ -315,36 +317,13 @@ do
 done
 
 #final plots
-qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile}_plots.log -o ${outfile}_plots.log -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
+qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
 
 # Wait on subprocesses to finish before proceeding
-status=$(qstat | grep)
-while [ -n "$status" ] # while $status is not empty
-do
-    sleep 120
-    status=$(qstat | grep)
-done
+#status=$(qstat | grep)
+#while [ -n "$status" ] # while $status is not empty
+#do
+#    sleep 120
+#    status=$(qstat | grep)
+#done
 
-# Move integration logs to S3
-i=1  #initialize counter
-aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
- --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
-while [ $? -ne 0 ] && [ $i -lt 10 ]; do
-    let "i += 1"  #increment counter
-    >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
-    aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-     --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
-done
-
-
-# Move integration logs to S3
-i=1  #initialize counter
-aws s3 mv /ps/logs ${FHDdir}/ps/logs --recursive \
---exclude "*" --include "*plots.log" --quiet
-
-while [ $? -ne 0 ] && [ $i -lt 10 ]; do
-    let "i += 1"  #increment counter
-    >&2 echo "Moving eppsilon logs to S3 failed. Retrying (attempt $i)."
-    aws s3 mv /ps/logs ${FHDdir}/ps/logs --recursive \
-     --exclude "*" --include "*plots.log" --quiet
-done
