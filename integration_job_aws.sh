@@ -53,6 +53,7 @@ else
 fi
 
 #print array into file on the specific instance
+obs_list_array=($(echo $obs_list_array|sed 's/:/ /g'))
 printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
 
 if [ -z ${healpix_found} ]
