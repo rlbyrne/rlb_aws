@@ -105,7 +105,7 @@ fi
 
 first_line_len=$(echo ${#first_line})
 
-#create uvfits download location with full permissions
+#create Healpix download location with full permissions
 if [ -d /Healpix ]; then
     sudo chmod -R 777 /Healpix
     rm -f /Healpix/${version}_int_chunk*.txt # remove any old chunk files lying around
@@ -216,13 +216,14 @@ if [ "$ps_only" -ne "1" ]; then
         i=0
         chunk=0
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
+        readarray chunk_obs_array < $chunk_obs_list
         #outfile=/Healpix/${version}_int_chunk${chunk}_out.log
         #errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 #        touch $outfile
 #        touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do
-        	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
+        	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array=$chunk_obs_array,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
        		message=($message)
                 ((i++))
 	    done
@@ -283,6 +284,8 @@ n_evenodd=${#evenodd_arr[@]}
 cube_type_arr=('weights' 'dirty' 'model')
 n_cube=${#cube_type_arr[@]}
 
+readarray integrate_array < $integrate_list
+
 hold_str_int=$hold_str
 unset id_list
 unset pids
@@ -303,7 +306,7 @@ do
             cube_type_letter=${cube_type:0:1}
 
             #message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
-            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
+            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array=$integrate_array,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
             message=($message)
 
             if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
@@ -319,7 +322,7 @@ do
 done
 
 #final plots
-qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
+qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array=$integrate_array,version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
 
 # Wait on subprocesses to finish before proceeding
 #status=$(qstat | grep)

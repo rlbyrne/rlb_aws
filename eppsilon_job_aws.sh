@@ -5,7 +5,7 @@
 #This script is an extra layer between Grid Engine and IDL commands because
 #Grid Engine runs best on bash scripts.
 
-#inputs needed: file_path_cubes, obs_list_path, version, nslots
+#inputs needed: file_path_cubes, obs_list_path, obs_list_array, version, nslots
 #inputs optional: cube_type, pol, evenodd, image_filter_name
 
 echo JOBID ${JOB_ID}
@@ -38,6 +38,8 @@ else
     fi
 fi
 #***
+
+printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
 
 #create Healpix download location with full permissions
 if [ -d /Healpix ]; then

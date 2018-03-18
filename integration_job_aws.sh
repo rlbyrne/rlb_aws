@@ -6,7 +6,8 @@
 #This script is an extra layer between Grid Engine and IDL commands because
 #Grid Engine runs best on bash scripts.
 
-#inputs needed: file_path_cubes, obs_list_path, version, chunk, nslots, evenodd, pol
+#inputs needed: file_path_cubes, obs_list_path, obs_list_array, version, chunk, nslots, 
+#evenodd, pol
 #chunk is the chunk number when the list was broken up. 0 for "master" or only chunk
 
 echo JOBID ${JOB_ID}
@@ -51,6 +52,8 @@ else
     healpix_found=1
 fi
 
+#print array into file on the specific instance
+printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
 
 if [ -z ${healpix_found} ]
 then
