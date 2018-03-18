@@ -219,7 +219,7 @@ if [ "$ps_only" -ne "1" ]; then
         touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do
-                job_id=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh) | tail +2 | cut -d " " -f 3
+                job_id=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh) | tail -n +2 | cut -d " " -f 3
         	#message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
        		#message=($message)
 		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${job_id}; else idlist_int=${idlist_int},${job_id}; fi
@@ -229,26 +229,26 @@ if [ "$ps_only" -ne "1" ]; then
         hold_str="-hold_jid ${idlist_int}"
 
         # Wait on subprocesses to finish before proceeding
-        for cube_i in $(seq 0 $(($i-1)))
-        do 
-            status=$(qstat | grep " ${idlist_int[$cube_i]} ")
-            while [ -n "$status" ] # while $status is not empty
-	    do
-	    	    sleep 60
-		    status=$(qstat | grep " ${idlist_int[$cube_i]} ")
-	    done
-        done
+#        for cube_i in $(seq 0 $(($i-1)))
+#        do 
+#            status=$(qstat | grep " ${idlist_int[$cube_i]} ")
+#            while [ -n "$status" ] # while $status is not empty
+#	    do
+#	    	    sleep 60
+#		    status=$(qstat | grep " ${idlist_int[$cube_i]} ")
+#	    done
+#        done
 
-        # Move integration logs to S3
-        i=1  #initialize counter
-        aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-         --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
-        while [ $? -ne 0 ] && [ $i -lt 10 ]; do
-            let "i += 1"  #increment counter
-            >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
-            aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-             --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
-        done
+#        # Move integration logs to S3
+#        i=1  #initialize counter
+#        aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+#         --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
+#        while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+#            let "i += 1"  #increment counter
+#            >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+#            aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+#             --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
+#        done
 
     fi
 else
@@ -317,6 +317,18 @@ if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
 
 # Wait for subprocesses to finish before proceeding
 wait $pids
+
+# Move integration logs to S3
+i=1  #initialize counter
+aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+ --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
+while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+    let "i += 1"  #increment counter
+    >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+    aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
+     --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
+done
+
 
 # Move integration logs to S3
 i=1  #initialize counter
