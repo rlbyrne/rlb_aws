@@ -217,6 +217,7 @@ if [ "$ps_only" -ne "1" ]; then
         chunk=0
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
         readarray chunk_obs_array < $chunk_obs_list
+	chunk_obs_array=$( IFS=$':'; echo "${chunk_obs_array[*]}" ) #qsub can't take arrays
         #outfile=/Healpix/${version}_int_chunk${chunk}_out.log
         #errfile=/Healpix/${version}_int_chunk${chunk}_err.log
 #        touch $outfile
@@ -285,6 +286,7 @@ cube_type_arr=('weights' 'dirty' 'model')
 n_cube=${#cube_type_arr[@]}
 
 readarray integrate_array < $integrate_list
+integrate_array=$( IFS=$':'; echo "${integrate_array[*]}" ) #qsub can't take arrays
 
 hold_str_int=$hold_str
 unset id_list
