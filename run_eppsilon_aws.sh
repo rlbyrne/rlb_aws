@@ -219,16 +219,17 @@ if [ "$ps_only" -ne "1" ]; then
         touch $errfile
 	for evenodd in even odd; do
 	    for pol in XX YY; do
-        	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
-       		message=($message)
-		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${message[2]}; else idlist_int=${idlist_int},${message[2]}; fi
+                job_id=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh) | tail +2 | cut -d " " -f 3
+        	#message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
+       		#message=($message)
+		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_int=${job_id}; else idlist_int=${idlist_int},${job_id}; fi
                 ((i++))
 	    done
 	done
         hold_str="-hold_jid ${idlist_int}"
 
         # Wait on subprocesses to finish before proceeding
-        for cube_i in {0..$i}
+        for cube_i in $(seq 0 $(($i-1)))
         do 
             status=$(qstat | grep " ${idlist_int[$cube_i]} ")
             while [ -n "$status" ] # while $status is not empty
