@@ -107,6 +107,8 @@ then
     done < $obs_list_path
     ####
 
+    echo All cubes on instance
+
     #Create a name for the obs txt file based off of inputs
     evenoddpol_file_paths=/Healpix/${version}_int_chunk${chunk}_${evenodd}${pol^^}_list.txt
     #clear old file paths
@@ -122,13 +124,9 @@ then
     done < "$obs_list_path"
     #***
 
-    unset int_pids
-
     ####Run the integration IDL script
-    idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e integrate_healpix_cubes -args "$evenoddpol_file_paths" "$save_file_evenoddpol" & int_pids+=( $! )
+    idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e integrate_healpix_cubes -args "$evenoddpol_file_paths" "$save_file_evenoddpol" || :
     #***
-
-    wait ${int_pids[@]} # Wait for integration to finish before making PS
 
     if [ $? -eq 0 ]
     then
