@@ -84,7 +84,7 @@ then
         fi
     done < $obs_list_path
 
-    if [ -z ${exit_flag} ]; then exit 1;fi 
+    if [ ! -z ${exit_flag} ]; then exit 1;fi 
     ####
 
     ####Download Healpix cubes
