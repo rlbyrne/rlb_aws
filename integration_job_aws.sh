@@ -17,6 +17,14 @@ echo "JOB START TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 echo PUBLIC IP ${myip}
 
+#create Healpix download location with full permissions
+if [ -d /Healpix ]; then
+    sudo chmod -R 777 /Healpix
+    rm -f /Healpix/${version}_int_chunk*.txt # remove any old chunk files lying around
+else
+    sudo mkdir -m 777 /Healpix
+fi
+
 #***If the integration has been split up into chunks, name the save file specifically off of that.
 if [ "$chunk" -gt "0" ]; then
     int_filename=Combined_obs_${version}_int_chunk${chunk}_${evenodd}_cube${pol^^}.sav

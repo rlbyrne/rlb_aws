@@ -39,54 +39,54 @@ else
 fi
 #***
 
-obs_list_array=($(echo $obs_list_array|sed 's/:/ /g'))
-printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
-
 #create Healpix download location with full permissions
 if [ -d /Healpix ]; then
     sudo chmod -R 777 /Healpix
 else
     sudo mkdir -m 777 /Healpix
 fi
+if [ -d /ps ]; then
+    sudo chmod -R 777 /ps
+else
+    sudo mkdir -m 777 /ps
+fi
+
+obs_list_array=($(echo $obs_list_array|sed 's/:/ /g'))
+printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
 
 unset exit_flag
 
 ####Check for all integrated Healpix cubes
-while read obs_id
-do
-    # Check if the Healpix exists locally; if not, check S3
-    if [ ! -f "/Healpix/Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav" ]; then
+# Check if the Healpix exists locally; if not, check S3
+if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
 
-        # Check that the Healpix file exists on S3
-        healpix_exists=$(aws s3 ls ${file_path_cubes}/Healpix/Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav)
-        if [ -z "$healpix_exists" ]; then
-            >&2 echo "ERROR: HEALPix file not found Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav"
-            exit_flag=1
-        fi
+    # Check that the Healpix file exists on S3
+    healpix_exists=$(aws s3 ls ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav)
+    if [ -z "$healpix_exists" ]; then
+        >&2 echo "ERROR: HEALPix file not found Combined_obs_${version}_${evenodd}_cube${pol^^}.sav"
+        exit_flag=1
     fi
-done < $obs_list_path
+fi
+
 
 if [ -z ${exit_flag} ]; then exit 1;fi 
 ####
 
 ####Download Healpix cubes
-while read obs_id
-do
-    # Check if the Healpix exists locally; if not, download it from S3
-    if [ ! -f "/Healpix/Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav" ]; then
+# Check if the Healpix exists locally; if not, download it from S3
+if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
 
-        # Download Healpix from S3
-        sudo aws s3 cp ${file_path_cubes}/Healpix/Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav \
-        /Healpix/Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav --quiet
+    # Download Healpix from S3
+    sudo aws s3 cp ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav \
+    /Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav --quiet
 
-        # Verify that the cubes downloaded correctly
-        if [ ! -f "/Healpix/Combined_obs_${obs_id}_${evenodd}_cube${pol^^}.sav" ]; then
-            >&2 echo "ERROR: downloading cubes from S3 failed"
-            echo "Job Failed"
-            exit 1
-        fi
+    # Verify that the cubes downloaded correctly
+    if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
+        >&2 echo "ERROR: downloading cubes from S3 failed"
+        echo "Job Failed"
+        exit 1
     fi
-done < $obs_list_path
+fi
 ####
 
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e mit_ps_job -args $arg_string aws || :
