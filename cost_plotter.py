@@ -13,6 +13,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sept',
+          'Oct', 'Nov', 'Dec']
 
 def plot_charges():
 
@@ -21,19 +23,21 @@ def plot_charges():
     anaconda_path = '/home/rlbyrne/anaconda2/bin'
     # path = '/Users/ruby/EoR/rlb_aws'
     # anaconda_path = '/Users/ruby/anaconda/bin/python'
-    plot_days = 7.  # plot the last week of charges
+    plot_days = 32.  # plot up to the last 32 days of data
 
     charge_items = get_data(path, anaconda_path, plot_days, datetime.now())
-    if datetime.now().day <= plot_days:
-        charge_items.extend(
-            get_data(path, anaconda_path, plot_days,
-                     datetime.now() + timedelta(days=-(datetime.now().day+1)))
-            )
+
+    # Get last month's cost data if it is near the beginning of the month
+    #if datetime.now().day <= plot_days:
+    #    charge_items.extend(
+    #        get_data(path, anaconda_path, plot_days,
+    #                 datetime.now() + timedelta(days=-(datetime.now().day+1)))
+    #        )
 
     total_cost = sum([item.cost for item in charge_items])
     product_types = list(set([item.product for item in charge_items]))
     times = [datetime.now() + timedelta(minutes=minutes) for minutes in
-             range(-10080, 0)]
+             range(-46080, 0)]
     while times[-1] > max([item.endtime for item in charge_items]):
         del times[-1]
     while times[0] < min([item.starttime for item in charge_items]):
@@ -101,6 +105,8 @@ def plot_fill_in(times, cost_data, product_types, integrate, path):
     plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
+    plt.title('AWS Costs: {}'.format(months[times[-1].month-1])
+    plt.annotate('Total Costs This Month: ${}'.format(running_sum[-1]))
     plt.savefig('{}/aws_costs_{}.png'.format(path, datetime.now().date()))
 
 
