@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sept',
           'Oct', 'Nov', 'Dec']
 
+
 def plot_charges():
 
     integrate = True
@@ -95,7 +96,7 @@ def plot_fill_in(times, cost_data, product_types, integrate, path):
             running_sum[j] + cost_data[i, j] for j in range(len(times))]
         ax.fill_between(
             times, running_sum_new, running_sum, where=None,
-            label=product_types[i])
+            label='{}: ${0:.2f}'.format(product_types[i], cost_data[i, -1]))
         running_sum = running_sum_new
     plt.xlabel("time")
     if integrate:
@@ -105,8 +106,7 @@ def plot_fill_in(times, cost_data, product_types, integrate, path):
     plt.legend(loc=2)
     plt.grid(True)
     plt.tick_params(labelsize=6)
-    plt.title('AWS Costs: {}'.format(months[times[-1].month-1])
-    plt.annotate('Total Costs This Month: ${}'.format(running_sum[-1]))
+    plt.title('AWS Costs: {}'.format(months[times[-1].month-1]))
     plt.savefig('{}/aws_costs_{}.png'.format(path, datetime.now().date()))
 
 
