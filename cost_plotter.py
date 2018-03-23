@@ -62,6 +62,7 @@ def plot_charges():
 
     while cost_integrated[-1, -1] < 1.:
         cost_integrated = cost_integrated[:-1, :]
+        product_types = product_types[:-1]
 
     if integrate:
         cost_integrated_sorted = cost_integrated[
