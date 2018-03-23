@@ -60,6 +60,9 @@ def plot_charges():
         product_types, key=lambda val:
         cost_integrated[product_types. index(val), -1], reverse=True)
 
+    while cost_integrated[-1, -1] < 1.:
+        cost_integrated = cost_integrated[:-1, :]
+
     if integrate:
         cost_integrated_sorted = cost_integrated[
             cost_integrated[:, -1].argsort()[::-1]
@@ -96,7 +99,7 @@ def plot_fill_in(times, cost_data, product_types, integrate, path):
             running_sum[j] + cost_data[i, j] for j in range(len(times))]
         ax.fill_between(
             times, running_sum_new, running_sum, where=None,
-            label='{}: ${0:.2f}'.format(product_types[i], cost_data[i, -1]))
+            label='{}: ${:.2f}'.format(product_types[i], cost_data[i, -1]))
         running_sum = running_sum_new
     plt.xlabel("time")
     if integrate:
