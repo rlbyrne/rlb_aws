@@ -60,14 +60,14 @@ def plot_charges():
         product_types, key=lambda val:
         cost_integrated[product_types. index(val), -1], reverse=True)
 
-    while cost_integrated[-1, -1] < 1.:
-        cost_integrated = cost_integrated[:-1, :]
-        product_types = product_types[:-1]
-
     if integrate:
         cost_integrated_sorted = cost_integrated[
             cost_integrated[:, -1].argsort()[::-1]
             ]
+        # Don't plot products that cost less than $1
+        while cost_integrated_sorted[-1, -1] < 1.:
+            cost_integrated_sorted = cost_integrated_sorted[:-1, :]
+            product_types = product_types[:-1]
         plot_fill_in(
             times, cost_integrated_sorted, product_types, integrate, path)
     else:
