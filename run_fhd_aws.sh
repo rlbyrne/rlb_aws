@@ -150,14 +150,6 @@ else
     fi
 fi
 
-if grep -q \'${version}\' ~/MWA/FHD/Observations/${versions_script}.pro
-then
-    echo Using version $version
-else
-    echo Version \'${version}\' was not found in ~/MWA/FHD/Observations/${versions_script}.pro
-    exit 1
-fi
-
 #Set typical slots needed for standard FHD firstpass if not set.
 if [ -z ${nslots} ]; then
     nslots=10
