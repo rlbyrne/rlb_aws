@@ -140,13 +140,13 @@ if [ ${user} != 'rlb' ] && [ ${user} != 'nb' ]; then
 fi
 
 if [ $run_type == 'sim' ]; then
-    versions_script='rlb_fhd_sim_versions'
+    versions_script='fhd_sim_versions_rlb'
 else
     if [ $user == 'nb' ]; then
         versions_script='nb_eor_firstpass_versions'
     fi
     if [ $user == 'rlb' ]; then
-        versions_script='rlb_fhd_versions'
+        versions_script='fhd_versions_rlb'
     fi
 fi
 
