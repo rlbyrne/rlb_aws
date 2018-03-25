@@ -55,6 +55,12 @@ fi
 #Remove extraneous / on FHD directory if present
 if [[ $FHDdir == */ ]]; then FHDdir=${FHDdir%?}; fi
 
+aws s3 ls ${FHDdir}
+if [[ $? -ne 0 ]]; then
+  echo "FHDdir does not exist"
+  exit 1
+fi
+
 #Error if integrate_list is not set
 if [ -z ${integrate_list} ]
 then
