@@ -88,7 +88,7 @@ if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
 fi
 ####
 
-idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e mit_ps_job -args $arg_string aws || :
+idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e aws_ps_job -args $arg_string || :
 
 if [ $? -eq 0 ]
 then
