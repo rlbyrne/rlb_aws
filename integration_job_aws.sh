@@ -152,13 +152,13 @@ then
 
     # Move integration logs to S3
     i=1  #initialize counter
-    aws s3 mv ~/grid_out/ ${file_path_cubes}/Healpix/ --recursive \
-     --exclude "*" --include "*integratio*" --quiet
+    aws s3 cp ~/grid_out/ ${file_path_cubes}/Healpix/ --recursive \
+     --exclude "*" --include "*int_*" --quiet
     while [ $? -ne 0 ] && [ $i -lt 10 ]; do
         let "i += 1"  #increment counter
         >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
-        aws s3 mv ~/grid_out/ ${file_path_cubes}/Healpix/ --recursive \
-         --exclude "*" --include "*integratio*" --quiet
+        aws s3 cp ~/grid_out/ ${file_path_cubes}/Healpix/ --recursive \
+         --exclude "*" --include "*int_*" --quiet
     done
 
     # Remove obsid cubes from the instance

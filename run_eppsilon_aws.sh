@@ -164,96 +164,56 @@ if [ "$ps_only" -ne "1" ]; then
         # launch separate chunks
         for chunk in $(seq 1 $nchunk); do
 	    chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
-	    outfile=/Healpix/${version}_int_chunk${chunk}_out.log
-	    errfile=/Healpix/${version}_int_chunk${chunk}_err.log
-            touch $outfile
-            touch $errfile
-	    for evenodd in even odd; do
+            readarray chunk_obs_array < $chunk_obs_list
+	    chunk_obs_array=$( IFS=$':'; echo "${chunk_obs_array[*]}" ) #qsub can't take arrays
+	    
+            for evenodd in even odd; do
 		for pol in XX YY; do 
-	    	    message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
+	    	    message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array="$chunk_obs_array",obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -N int_c_${version} -pe smp $nslots -sync y integration_job_aws.sh)
 	    	    message=($message)
-                    if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
-	    	    if [ "$chunk" -eq 1 ] && [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist=${message[2]}; else idlist=${idlist},${message[2]}; fi
 		done
 	    done
 	    echo Combined_obs_${version}_int_chunk${chunk} >> $sub_cubes_list # trick it into finding our sub cubes
         done
 
+        idlist_int_chunks=(`qstat | grep "int_c_" | cut -b -7`)
+	hold_str="-hold_jid ${idlist_int_chunks}"
+
         # master integrator
         chunk=0
-        outfile=/Healpix/${version}_int_chunk${chunk}_out.log
-        errfile=/Healpix/${version}_int_chunk${chunk}_err.log
-        touch $outfile
-        touch $errfile
-	for evenodd in even odd; do
+        chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
+        readarray chunk_obs_array < $chunk_obs_list
+	chunk_obs_array=$( IFS=$':'; echo "${chunk_obs_array[*]}" ) #qsub can't take arrays
+	
+        for evenodd in even odd; do
 	    for pol in XX YY; do 
-	    	message=$(qsub -hold_jid $idlist -V -b y -v file_path_cubes=$FHDdir,obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
+	    	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array="$chunk_obs_array",obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -N int_m_${version} -pe smp $nslots -sync y integration_job_aws.sh)
         	message=($message)
-                if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
-		if [[ "$evenodd" = "even" ]] && [[ "$pol" = "XX" ]]; then idlist_master=${message[2]}; else idlist_master=${idlist_master},${message[2]}; fi
 	    done
 	done
-	hold_str="-hold_jid ${idlist_master}"
 
-        # Wait on subprocesses to finish before proceeding
-        wait $pids
+        idlist_int_master=(`qstat | grep "int_m_" | cut -b -7`)
+	hold_str="-hold_jid ${idlist_int_master}"
 
-        # Move integration logs to S3
-        i=1  #initialize counter
-        aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-         --exclude "*" --include "*int_chunk*" --include "*.log" --quiet
-        while [ $? -ne 0 ] && [ $i -lt 10 ]; do
-            let "i += 1"  #increment counter
-            >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
-            aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-             --exclude "*" --include "*int_chunk*" --include "*.log" --quiet
-        done
 
     else
 
         # Just one integrator
         mv /Healpix/${version}_int_chunk1.txt /Healpix/${version}_int_chunk0.txt
-        i=0
         chunk=0
         chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
         readarray chunk_obs_array < $chunk_obs_list
 	chunk_obs_array=$( IFS=$':'; echo "${chunk_obs_array[*]}" ) #qsub can't take arrays
-        #outfile=/Healpix/${version}_int_chunk${chunk}_out.log
-        #errfile=/Healpix/${version}_int_chunk${chunk}_err.log
-#        touch $outfile
-#        touch $errfile
-	for evenodd in even odd; do
+	
+        for evenodd in even odd; do
 	    for pol in XX YY; do
-        	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array="$chunk_obs_array",obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -pe smp $nslots -sync y integration_job_aws.sh)
+        	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array="$chunk_obs_array",obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -N int_${version} -pe smp $nslots -sync y integration_job_aws.sh)
        		message=($message)
-                ((i++))
 	    done
 	done
 
-        idlist_int=(`qstat | grep "integratio" | cut -b -7`)
+        idlist_int=(`qstat | grep "int_" | cut -b -7`)
         hold_str="-hold_jid ${idlist_int}"
-
-        # Wait on subprocesses to finish before proceeding
-#        for cube_i in $(seq 0 $(($i-1)))
-#        do 
-#            status=$(qstat | grep " ${idlist_int[$cube_i]} ")
-#            while [ -n "$status" ] # while $status is not empty
-#	    do
-#	    	    sleep 60
-#		    status=$(qstat | grep " ${idlist_int[$cube_i]} ")
-#	    done
-#        done
-
-#        # Move integration logs to S3
-#        i=1  #initialize counter
-#        aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-#         --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
-#        while [ $? -ne 0 ] && [ $i -lt 10 ]; do
-#            let "i += 1"  #increment counter
-#            >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
-#            aws s3 mv /Healpix/ ${FHDdir}/Healpix/ --recursive \
-#             --exclude "*" --include "*int_chunk0*" --include "*.log" --quiet
-#        done
 
     fi
 else
