@@ -32,27 +32,29 @@ unset version
 #######Gathering the input arguments and applying defaults if necessary
 
 #Parse flags for inputs
-while getopts ":f:s:e:o:b:v:n:r:u:p:m:" option
+while getopts ":f:s:e:o:b:v:n:r:u:p:m:i:i2:" option
 do
    case $option in
-	f) obs_file_name="$OPTARG";;	#text file of observation id's
-	s) starting_obs=$OPTARG;;	#starting observation in text file for choosing a range
-	e) ending_obs=$OPTARG;;		#ending observation in text file for choosing a range
+    f) obs_file_name="$OPTARG";;	#text file of observation id's
+    s) starting_obs=$OPTARG;;	#starting observation in text file for choosing a range
+    e) ending_obs=$OPTARG;;		#ending observation in text file for choosing a range
     o) outdir=$OPTARG;;		#output directory for FHD
     b) s3_path=$OPTARG;;		#output bucket on S3
     v) version=$OPTARG;;		#FHD folder name and case
 		#Example: nb_foo creates folder named fhd_nb_foo
-	n) nslots=$OPTARG;;		#Number of slots for grid engine
+    n) nslots=$OPTARG;;		#Number of slots for grid engine
     r) run_type=$OPTARG;;		#Options are data or sim
     u) user=$OPTARG;;		#User: options are rlb (default) or nb
     p) uvfits_s3_loc=$OPTARG;;		#Path to uvfits files on S3
     m) metafits_s3_loc=$OPTARG;;		#Path to metafits files on S3
-	\?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
-	    echo "-b (output bucket on S3), -v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation)), "
+    i) input_vis=$OPTARG;;              #Optional input visibilities for in situ sim
+    i2) input_eor=$OPTARG;;             #Optional input eor sim for in situ sim
+    \?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
+        echo "-b (output bucket on S3), -v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation)), "
         echo "-u (user), -p (path to uvfits files on S3), -m (path to metafits files on S3)."
-	    exit 1;;
-	:) echo "Missing option argument for input flag"
-	   exit 1;;
+        exit 1;;
+    :) echo "Missing option argument for input flag"
+       exit 1;;
    esac
 done
 
@@ -93,7 +95,7 @@ else
 fi
 
 if [ -z ${uvfits_s3_loc} ]; then
-    uvfits_s3_loc=s3://mwapublic/uvfits/5.1
+    uvfits_s3_loc=s3://mwapublic/uvfits/4.1
 else
     #strip the last / if present in uvfits filepath
     uvfits_s3_loc=${uvfits_s3_loc%/}
@@ -219,5 +221,5 @@ done
 
 for obs_id in "${good_obs_list[@]}"
 do
-   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path},obs_id=$obs_id,versions_script=$versions_script,uvfits_s3_loc=$uvfits_s3_loc,metafits_s3_loc=$metafits_s3_loc -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh &
+   qsub -V -b y -cwd -v nslots=${nslots},outdir=${outdir},version=${version},s3_path=${s3_path},obs_id=$obs_id,versions_script=$versions_script,uvfits_s3_loc=$uvfits_s3_loc,metafits_s3_loc=$metafits_s3_loc,input_vis=$input_vis,input_eor=$input_eor -e ${logdir} -o ${logdir} -pe smp ${nslots} -sync y fhd_job_aws.sh &
 done

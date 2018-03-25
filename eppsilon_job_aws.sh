@@ -68,8 +68,7 @@ if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
     fi
 fi
 
-
-if [ -z ${exit_flag} ]; then exit 1;fi 
+if [ ! -z ${exit_flag} ]; then exit 1;fi 
 ####
 
 ####Download Healpix cubes
@@ -89,7 +88,7 @@ if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
 fi
 ####
 
-idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e mit_ps_job -args $arg_string aws || :
+idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e aws_ps_job -args $arg_string || :
 
 if [ $? -eq 0 ]
 then
@@ -113,19 +112,19 @@ echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 
 # Move integration logs to S3
 i=1  #initialize counter
-aws s3 mv ~/grid_out/ ${file_path_cubes}/ps/logs --recursive \
+aws s3 cp ~/grid_out/ ${file_path_cubes}/ps/logs --recursive \
 --exclude "*" --include "*_xx_*" --quiet
-aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
+aws s3 cp ~/grid_out ${file_path_cubes}/ps/logs --recursive \
 --exclude "*" --include "*_yy_*" --quiet
-aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
+aws s3 cp ~/grid_out ${file_path_cubes}/ps/logs --recursive \
 --exclude "*" --include "*_plots*" --quiet
 while [ $? -ne 0 ] && [ $i -lt 10 ]; do
     let "i += 1"  #increment counter
     >&2 echo "Moving eppsilon logs to S3 failed. Retrying (attempt $i)."
-    aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
+    aws s3 cp ~/grid_out ${file_path_cubes}/ps/logs --recursive \
      --exclude "*" --include "*_xx_*" --quiet
-    aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
+    aws s3 cp ~/grid_out ${file_path_cubes}/ps/logs --recursive \
      --exclude "*" --include "*_yy_*" --quiet
-    aws s3 mv ~/grid_out ${file_path_cubes}/ps/logs --recursive \
+    aws s3 cp ~/grid_out ${file_path_cubes}/ps/logs --recursive \
      --exclude "*" --include "*_plots*" --quiet
 done

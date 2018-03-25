@@ -108,6 +108,40 @@ if [ ! -f "/uvfits/${obs_id}.metafits" ]; then
     fi
 fi
 
+#Get input_vis files
+if [ ! -z ${input_vis} ]; then
+
+    # Check that the input_vis file/loc exists on S3
+    input_vis_exists=$(aws s3 ls ${input_vis})
+    if [ -z "$input_vis_exists" ]; then
+        >&2 echo "ERROR: input_vis file not found"
+        echo "Job Failed"
+        exit 1
+    fi
+
+    # Download input_vis from S3
+    sudo aws s3 cp ${input_vis} \
+    /uvfits/input_vis/ --recursive --quiet
+
+fi
+
+#Get input_eor files
+if [ ! -z ${input_eor} ]; then
+
+    # Check that the input_eor file/loc exists on S3
+    input_eor_exists=$(aws s3 ls ${input_eor})
+    if [ -z "$input_eor_exists" ]; then
+        >&2 echo "ERROR: input_eor file not found"
+        echo "Job Failed"
+        exit 1
+    fi
+
+    # Download input_eor from S3
+    sudo aws s3 cp ${input_eor} \
+    /uvfits/input_eor/ --recursive --quiet
+
+fi
+
 # Copy previous runs from S3 (allows FHD to not recalculate everything)
 aws s3 cp ${s3_path}/fhd_${version}/ ${outdir}/fhd_${version}/ --recursive \
 --exclude "*" --include "*${obs_id}*" --quiet
