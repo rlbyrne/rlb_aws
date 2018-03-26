@@ -15,7 +15,7 @@ myip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 echo PUBLIC IP ${myip}
 
 
-input_file=${file_path_cubes}/
+input_file=/
 
 #***Create a string of arguements to pass into mit_ps_job given the input
 #   into this script

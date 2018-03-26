@@ -273,7 +273,6 @@ do
 
             cube_type_letter=${cube_type:0:1}
 
-            #message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile}_${pol}_${evenodd}_${cube_type}.log -o ${outfile}_${pol}_${evenodd}_${cube_type}.log -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
             message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array="$integrate_array",version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
             message=($message)
 
@@ -292,11 +291,4 @@ done
 #final plots
 qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array="$integrate_array",version=$version,nslots=$nslots,image_filter_name=$image_filter -e ${errfile} -o ${outfile} -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
 
-# Wait on subprocesses to finish before proceeding
-#status=$(qstat | grep)
-#while [ -n "$status" ] # while $status is not empty
-#do
-#    sleep 120
-#    status=$(qstat | grep)
-#done
 
