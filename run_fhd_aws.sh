@@ -32,7 +32,7 @@ unset version
 #######Gathering the input arguments and applying defaults if necessary
 
 #Parse flags for inputs
-while getopts ":f:s:e:o:b:v:n:r:u:p:m:i:i2:" option
+while getopts ":f:s:e:o:b:v:n:r:u:p:m:i:j:" option
 do
    case $option in
     f) obs_file_name="$OPTARG";;	#text file of observation id's
@@ -48,7 +48,7 @@ do
     p) uvfits_s3_loc=$OPTARG;;		#Path to uvfits files on S3
     m) metafits_s3_loc=$OPTARG;;		#Path to metafits files on S3
     i) input_vis=$OPTARG;;              #Optional input visibilities for in situ sim
-    i2) input_eor=$OPTARG;;             #Optional input eor sim for in situ sim
+    j) input_eor=$OPTARG;;             #Optional input eor sim for in situ sim
     \?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
         echo "-b (output bucket on S3), -v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation)), "
         echo "-u (user), -p (path to uvfits files on S3), -m (path to metafits files on S3)."

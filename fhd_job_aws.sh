@@ -110,7 +110,7 @@ fi
 
 #Get input_vis files
 if [ ! -z ${input_vis} ]; then
-
+    
     # Check that the input_vis file/loc exists on S3
     input_vis_exists=$(aws s3 ls ${input_vis})
     if [ -z "$input_vis_exists" ]; then
@@ -121,7 +121,9 @@ if [ ! -z ${input_vis} ]; then
 
     # Download input_vis from S3
     sudo aws s3 cp ${input_vis} \
-    /uvfits/input_vis/ --recursive --quiet
+    /uvfits/input_vis/vis_data/ --recursive --quiet
+
+    echo Input visibilities from ${input_vis} copied to /uvfits/input_vis/vis_data
 
 fi
 
@@ -138,7 +140,9 @@ if [ ! -z ${input_eor} ]; then
 
     # Download input_eor from S3
     sudo aws s3 cp ${input_eor} \
-    /uvfits/input_eor/ --recursive --quiet
+    /uvfits/input_eor/vis_data/ --recursive --quiet
+
+    echo Input EoR visibilities from ${input_eor} copied to /uvfits/input_eor/vis_data
 
 fi
 
