@@ -88,6 +88,35 @@ if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
 fi
 ####
 
+####Check for weights cube if DFTing separate cubes
+if [ ! -z ${cube_type} ]; then
+    if [ ${cube_type} != "weights" ]; then
+        ##Needs weights cube
+	# Check if it exists locally; if not, download it from S3
+        if [ ! -f "/ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
+
+            # Download Healpix from S3
+            sudo aws s3 cp ${file_path_cubes}/ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave \
+            /ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave --quiet
+
+            # Verify that the cubes downloaded correctly
+            if [ ! -f "/ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
+                >&2 echo "ERROR: downloading weights cube from S3 failed"
+                echo "Job Failed"
+                exit 1
+            fi
+        fi
+    fi
+fi
+####
+
+####Get PS folder if not DFTing separate cubes
+if [ -z ${cube_type} ]; then
+    sudo aws s3 cp ${file_path_cubes}/ps/ /ps/ --recursive --quiet \
+     --exclude "*" --include "Combined_obs_${version}*"
+fi
+####
+
 idl -IDL_DEVICE ps -IDL_CPU_TPOOL_NTHREADS $nslots -e aws_ps_job -args $arg_string || :
 
 if [ $? -eq 0 ]
