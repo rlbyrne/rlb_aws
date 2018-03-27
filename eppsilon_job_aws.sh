@@ -45,10 +45,23 @@ if [ -d /Healpix ]; then
 else
     sudo mkdir -m 777 /Healpix
 fi
+#create PS download location with full permissions
 if [ -d /ps ]; then
     sudo chmod -R 777 /ps
+    if [ -d /ps/data ]; then
+        sudo chmod -R 777 /ps/data
+    else 
+        sudo mkdir -m 777 /ps/data
+    fi
+    if [ -d /ps/data/uvf_cubes ]; then
+        sudo chmod -R 777 /ps/data/uvf_cubes
+    else
+        sudo mkdir -m 777 /ps/data/uvf_cubes
+    fi
 else
     sudo mkdir -m 777 /ps
+    sudo mkdir -m 777 /ps/data
+    sudo mkdir -m 777 /ps/data/uvf_cubes
 fi
 
 obs_list_array=($(echo $obs_list_array|sed 's/:/ /g'))
@@ -93,14 +106,14 @@ if [ ! -z ${cube_type} ]; then
     if [ ${cube_type} != "weights" ]; then
         ##Needs weights cube
 	# Check if it exists locally; if not, download it from S3
-        if [ ! -f "/ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
+        if [ ! -f "/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
 
             # Download Healpix from S3
-            sudo aws s3 cp ${file_path_cubes}/ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave \
-            /ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave --quiet
+            sudo aws s3 cp ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave \
+            /ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave --quiet
 
             # Verify that the cubes downloaded correctly
-            if [ ! -f "/ps/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
+            if [ ! -f "/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
                 >&2 echo "ERROR: downloading weights cube from S3 failed"
                 echo "Job Failed"
                 exit 1
@@ -129,13 +142,23 @@ else
 fi
 
 # Move eppsilon outputs to S3
-i=1  #initialize counter
-aws s3 mv /ps/ ${file_path_cubes}/ps/ --recursive --quiet
-while [ $? -ne 0 ] && [ $i -lt 10 ]; do
-    let "i += 1"  #increment counter
-    >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+if [ -z ${cube_type} ]; then
+    i=1  #initialize counter
     aws s3 mv /ps/ ${file_path_cubes}/ps/ --recursive --quiet
-done
+    while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+        let "i += 1"  #increment counter
+        >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+        aws s3 mv /ps/ ${file_path_cubes}/ps/ --recursive --quiet
+    done
+else
+    i=1  #initialize counter
+    aws s3 mv /ps/data/uvf_cubes/ ${file_path_cubes}/ps/data/uvf_cubes/ --recursive --quiet
+    while [ $? -ne 0 ] && [ $i -lt 10 ]; do
+        let "i += 1"  #increment counter
+        >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
+        aws s3 mv /ps/data/uvf_cubes/ ${file_path_cubes}/ps/data/uvf_cubes/ --recursive --quiet
+    done
+fi
 
 echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
 
