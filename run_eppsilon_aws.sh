@@ -125,7 +125,7 @@ if [ "$first_line_len" == 10 ]; then
 
     while read line
     do
-        ((chunk=obs/100+1))		#integer division results in chunks labeled 0 (first 100), 1 (second 100), etc
+        ((chunk=obs/20+1))		#integer division results in chunks labeled 0 (first 100), 1 (second 100), etc
         echo $line >> /Healpix/${version}_int_chunk${chunk}.txt	#put that obs id into the right txt file
         ((obs++))			#increment obs for the next run through
     done < $integrate_list
@@ -187,13 +187,12 @@ if [ "$ps_only" -ne "1" ]; then
 
         # master integrator
         chunk=0
-        chunk_obs_list=/Healpix/${version}_int_chunk${chunk}.txt
-        readarray chunk_obs_array < $chunk_obs_list
+        readarray chunk_obs_array < $sub_cubes_list
 	chunk_obs_array=$( IFS=$':'; echo "${chunk_obs_array[*]}" ) #qsub can't take arrays
 	
         for evenodd in even odd; do
 	    for pol in XX YY; do 
-	    	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array="$chunk_obs_array",obs_list_path=$chunk_obs_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -N int_m_${version} -pe smp $nslots -sync y integration_job_aws.sh)
+	    	message=$(qsub ${hold_str} -V -b y -v file_path_cubes=$FHDdir,obs_list_array="$chunk_obs_array",obs_list_path=$sub_cubes_list,version=$version,chunk=$chunk,nslots=$nslots,legacy=$legacy,evenodd=$evenodd,pol=$pol -e $errfile -o $outfile -N int_m_${version} -pe smp $nslots -sync y integration_job_aws.sh)
         	message=($message)
 	    done
 	done
