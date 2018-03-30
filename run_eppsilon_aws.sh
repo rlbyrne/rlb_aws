@@ -159,7 +159,6 @@ outfile=~/grid_out
 errfile=~/grid_out
 
 unset idlist
-unset pids
 if [ "$ps_only" -ne "1" ]; then   
     if [ "$nchunk" -gt "1" ]; then
 
@@ -183,7 +182,7 @@ if [ "$ps_only" -ne "1" ]; then
         done
 
         idlist_int_chunks=(`qstat | grep "int_c_" | cut -b -7`)
-	hold_str="-hold_jid ${idlist_int_chunks}"
+	hold_str="-hold_jid ${idlist_int_chunks[@]}"
 
         # master integrator
         chunk=0
@@ -198,7 +197,7 @@ if [ "$ps_only" -ne "1" ]; then
 	done
 
         idlist_int_master=(`qstat | grep "int_m_" | cut -b -7`)
-	hold_str="-hold_jid ${idlist_int_master}"
+	hold_str="-hold_jid ${idlist_int_master[@]}"
 
 
     else
