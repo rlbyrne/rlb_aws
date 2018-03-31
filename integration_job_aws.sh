@@ -139,13 +139,13 @@ then
 
     # Move integration outputs to S3
     i=1  #initialize counter
-    aws s3 mv /Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav \
-    ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav --quiet
+    aws s3 mv ${save_file_evenoddpol} \
+    ${file_path_cubes}${save_file_evenoddpol} --quiet
     while [ $? -ne 0 ] && [ $i -lt 10 ]; do
         let "i += 1"  #increment counter
         >&2 echo "Moving FHD outputs to S3 failed. Retrying (attempt $i)."
-        aws s3 mv /Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav \
-        ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav --quiet
+        aws s3 mv ${save_file_evenoddpol} \
+        ${file_path_cubes}${save_file_evenoddpol} --quiet
     done
 
     echo "JOB END TIME" `date +"%Y-%m-%d_%H:%M:%S"`
