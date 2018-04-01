@@ -102,6 +102,8 @@ then
                 >&2 echo "ERROR: downloading cubes from S3 failed"
                 echo "Job Failed"
                 exit 1
+            else
+                echo Downloaded ${obs_id}_${evenodd}_cube${pol^^}.sav
             fi
         fi
     done < $obs_list_path
