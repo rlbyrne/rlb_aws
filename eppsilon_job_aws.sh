@@ -86,6 +86,9 @@ fi
 if [ ! -z ${exit_flag} ]; then exit 1;fi 
 ####
 
+evenodd_arr=('even' 'odd')
+pol_arr=('XX' 'YY')
+
 ####Download Healpix cubes
 # Check if the Healpix exists locally; if not, download it from S3
 #if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
@@ -94,9 +97,14 @@ if [ "$(ls /Healpix/Combined_obs_${version}_*.sav | wc -l)" -ne "4" ]; then
     # Download Healpix from S3
     #sudo aws s3 cp ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav \
     #/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav --quiet
-    sudo aws s3 cp ${file_path_cubes}/Healpix/ \
-    /Healpix/ --quiet --recursive \
-    --exclude "*" --include "Combined_obs_${version}_*"
+    for evenodd_i in evenodd_arr
+    do
+        for pol_i in pol_arr
+	do
+            sudo aws s3 cp ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd_i}_cube${pol_i^^}.sav \
+             /Healpix/Combined_obs_${version}_${evenodd_i}_cube${pol_i^^}.sav --quiet
+        done
+    done
 
     # Verify that the cubes downloaded correctly
     if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
