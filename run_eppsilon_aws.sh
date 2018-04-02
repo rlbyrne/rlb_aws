@@ -138,7 +138,7 @@ else
         chunk=0 
         while read line
         do
-            echo Healpix/$line >> /Healpix/${version}_int_chunk${chunk}.txt        #put that obs id into the right txt file
+            echo $line >> /Healpix/${version}_int_chunk${chunk}.txt        #put that obs id into the right txt file
         done < $integrate_list
         nchunk=$chunk                       #number of chunks we ended up with
     
