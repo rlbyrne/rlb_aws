@@ -70,13 +70,13 @@ printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
 unset exit_flag
 
 #####Check for data cubes if DFTing individually
-if [ ! -z ${cube_type} ]; then
-    cube_exists=$(aws s3 ls ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${cube_type}_uvf.idlsave)
-    if [ ! -z "$cube_exists" ]; then
-        echo Cube already exists. Exiting
-        exit 1
-    fi
-fi
+#if [ ! -z ${cube_type} ]; then
+#    cube_exists=$(aws s3 ls ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${cube_type}_uvf.idlsave)
+#    if [ ! -z "$cube_exists" ]; then
+#        echo Cube already exists. Exiting
+#        exit 1
+#    fi
+#fi
 
 ####Check for all integrated Healpix cubes
 # Check if the Healpix cubes exist locally; if not, check S3
