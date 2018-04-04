@@ -6,7 +6,7 @@
 #Grid Engine runs best on bash scripts.
 
 #inputs needed: file_path_cubes, obs_list_path, obs_list_array, version, nslots
-#inputs optional: cube_type, pol, evenodd, image_filter_name
+#inputs optional: cube_type, pol, evenodd, image_filter_name, image_letters
 
 echo JOBID ${JOB_ID}
 echo VERSION ${version}
@@ -70,13 +70,13 @@ printf "%s\n" "${obs_list_array[@]}" > $obs_list_path
 unset exit_flag
 
 #####Check for data cubes if DFTing individually
-#if [ ! -z ${cube_type} ]; then
-#    cube_exists=$(aws s3 ls ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${cube_type}_uvf.idlsave)
-#    if [ ! -z "$cube_exists" ]; then
-#        echo Cube already exists. Exiting
-#        exit 1
-#    fi
-#fi
+if [ ! -z ${cube_type} ]; then
+    cube_exists=$(aws s3 ls ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${image_letters}${cube_type}_uvf.idlsave)
+    if [ ! -z "$cube_exists" ]; then
+        echo Cube already exists. Exiting
+        exit 1
+    fi
+fi
 
 ####Check for all integrated Healpix cubes
 # Check if the Healpix cubes exist locally; if not, check S3
@@ -127,14 +127,14 @@ if [ ! -z ${cube_type} ]; then
     if [ ${cube_type} != "weights" ]; then
         ##Needs weights cube
 	# Check if it exists locally; if not, download it from S3
-        if [ ! -f "/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
+        if [ ! -f "/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${image_letters}weights_uvf.idlsave" ]; then
 
             # Download Healpix from S3
-            sudo aws s3 cp ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave \
-            /ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave --quiet
+            sudo aws s3 cp ${file_path_cubes}/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${image_letters}weights_uvf.idlsave \
+            /ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${image_letters}weights_uvf.idlsave --quiet
 
             # Verify that the cubes downloaded correctly
-            if [ ! -f "/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_weights_uvf.idlsave" ]; then
+            if [ ! -f "/ps/data/uvf_cubes/Combined_obs_${version}_${evenodd}_cube${pol^^}_${image_letters}weights_uvf.idlsave" ]; then
                 >&2 echo "ERROR: downloading weights cube from S3 failed"
                 echo "Job Failed"
                 exit 1
