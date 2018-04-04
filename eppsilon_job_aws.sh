@@ -110,15 +110,15 @@ if [ "$(ls /Healpix/Combined_obs_${version}_*.sav | wc -l)" -ne "4" ]; then
         for pol_i in XX YY; do
             sudo aws s3 cp ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd_i}_cube${pol_i^^}.sav \
              /Healpix/Combined_obs_${version}_${evenodd_i}_cube${pol_i^^}.sav --quiet
+	     
+	    # Verify that the cubes downloaded correctly
+            if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd_i}_cube${pol_i^^}.sav" ]; then
+                >&2 echo "ERROR: downloading cubes from S3 failed"
+                echo "Job Failed"
+                exit 1
+            fi
         done
     done
-
-    # Verify that the cubes downloaded correctly
-    if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
-        >&2 echo "ERROR: downloading cubes from S3 failed"
-        echo "Job Failed"
-        exit 1
-    fi
 fi
 ####
 
