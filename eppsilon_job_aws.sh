@@ -147,7 +147,7 @@ fi
 ####Get uvf_cubes folder if not DFTing separate cubes
 if [ -z ${cube_type} ]; then
     sudo aws s3 cp ${file_path_cubes}/ps/data/uvf_cubes/ /ps/data/uvf_cubes --recursive --quiet \
-     --exclude "*" --include "Combined_obs_${version}*"
+     --exclude "*" --include "Combined_obs_${version}*" --force-glacier-transfer
 fi
 ####
 
