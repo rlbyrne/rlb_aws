@@ -83,13 +83,16 @@ unset exit_flag
 ###TEMP solution until eppsilon can take individual cubes
 #if [ ! -f "/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav" ]; then
 if [ "$(ls /Healpix/Combined_obs_${version}_*.sav | wc -l)" -ne "4" ]; then
-
-    # Check that the Healpix file exists on S3
-    healpix_exists=$(aws s3 ls ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd}_cube${pol^^}.sav)
-    if [ -z "$healpix_exists" ]; then
-        >&2 echo "ERROR: HEALPix file not found Combined_obs_${version}_${evenodd}_cube${pol^^}.sav"
-        exit_flag=1
-    fi
+    for evenodd_i in even odd; do
+        for pol_i in XX YY; do
+            # Check that the Healpix file exists on S3
+            healpix_exists=$(aws s3 ls ${file_path_cubes}/Healpix/Combined_obs_${version}_${evenodd_i}_cube${pol_i^^}.sav)
+            if [ -z "$healpix_exists" ]; then
+                >&2 echo "ERROR: HEALPix file not found Combined_obs_${version}_${evenodd}_cube${pol^^}.sav"
+                exit_flag=1
+            fi
+	done
+    done
 fi
 
 if [ ! -z ${exit_flag} ]; then exit 1;fi 
