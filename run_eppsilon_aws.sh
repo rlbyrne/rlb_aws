@@ -24,7 +24,7 @@
 ######################################################################################
 
 #Parse flags for inputs
-while getopts ":d:f:n:p:h:i:" option
+while getopts ":d:f:n:p:h:i:q:" option
 do
    case $option in
         d) FHDdir="$OPTARG";;			#file path to fhd directory with cubes
@@ -33,8 +33,9 @@ do
 	p) ps_only=$OPTARG;;			#Flag for skipping integration to make PS only
         h) hold=$OPTARG;;                       #Hold for a job to finish before running. Useful when running immediately after firstpass
 	i) image_filter=$OPTARG;;               #Apply an image window filter during eppsilon
+	q) ps_plots_only=$OPTARG;;		#Submit only a PS_plots job with no individual cube DFTs
         \?) echo "Unknown option: Accepted flags are -d (file path to fhd directory with cubes), -f (obs list or subcube path or single obsid), "
-	    echo "-n (number of slots), -p (make ps only), "
+	    echo "-n (number of slots), -p (make ps only), -q (submit PS_plots only)"
 	    echo "-h (hold int/ps script on a running job id), and -i (apply a window filter during ps),"
             exit 1;;
         :) echo "Missing option argument for input flag"
@@ -271,35 +272,39 @@ hold_str_int=$hold_str
 unset id_list
 unset pids
 
-for pol in "${pol_arr[@]}"
-do
-    for evenodd in "${evenodd_arr[@]}"
+if [ -z ${ps_plots_only} ]; then
+
+    for pol in "${pol_arr[@]}"
     do
-        for cube_type in "${cube_type_arr[@]}"
+        for evenodd in "${evenodd_arr[@]}"
         do
-            if [ $cube_type = "weights" ]
-            then
-                hold_str_temp=$hold_str_int
-            else
-                hold_str_temp="-hold_jid ${weights_id}"
-            fi
+            for cube_type in "${cube_type_arr[@]}"
+            do
+                if [ $cube_type = "weights" ]
+                then
+                    hold_str_temp=$hold_str_int
+                else
+                    hold_str_temp="-hold_jid ${weights_id}"
+                fi
 
-            cube_type_letter=${cube_type:0:1}
+                cube_type_letter=${cube_type:0:1}
 
-            message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array="$integrate_array",version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter,image_letters=$image_letters -e ${errfile} -o ${outfile} -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
-            message=($message)
+                message=$(qsub ${hold_str_temp} -V -b y -cwd -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array="$integrate_array",version=$version,nslots=$nslots,cube_type=$cube_type,pol=$pol,evenodd=$evenodd,image_filter_name=$image_filter,image_letters=$image_letters -e ${errfile} -o ${outfile} -N ${cube_type_letter}_${pol}_${evenodd} -pe smp $nslots -sync y eppsilon_job_aws.sh)
+                message=($message)
 
-            if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
-            job_id=(`qstat | grep "${cube_type_letter}_${pol}_${evenodd}" | cut -b -7`)
-            if [ -z "$id_list" ]; then id_list=${job_id};else id_list=${id_list},${job_id};fi
+                if [ ! -z "$pids" ]; then pids="$!"; else pids=($pids "$!"); fi
+                job_id=(`qstat | grep "${cube_type_letter}_${pol}_${evenodd}" | cut -b -7`)
+                if [ -z "$id_list" ]; then id_list=${job_id};else id_list=${id_list},${job_id};fi
 
-            if [ $cube_type = "weights" ]
-            then
-                weights_id=$job_id
-            fi
+                if [ $cube_type = "weights" ]
+                then
+                    weights_id=$job_id
+                fi
+            done
         done
     done
-done
+
+fi
 
 #final plots
 qsub -hold_jid $id_list -V -v file_path_cubes=$FHDdir,obs_list_path=$integrate_list,obs_list_array="$integrate_array",version=$version,nslots=$nslots,image_filter_name=$image_filter,image_letters=$image_letters -e ${errfile} -o ${outfile} -N PS_plots -pe smp $nslots -sync y eppsilon_job_aws.sh
