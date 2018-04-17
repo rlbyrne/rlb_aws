@@ -110,7 +110,7 @@ fi
 
 #Get input_vis files
 if [ ! -z ${input_vis} ]; then
-    
+
     # Check that the input_vis file/loc exists on S3
     input_vis_exists=$(aws s3 ls ${input_vis})
     if [ -z "$input_vis_exists" ]; then
@@ -124,6 +124,12 @@ if [ ! -z ${input_vis} ]; then
     /uvfits/input_vis/vis_data/ --recursive --quiet
 
     echo Input visibilities from ${input_vis} copied to /uvfits/input_vis/vis_data
+
+    if [ ! -f "/uvfits/input_vis/vis_data/$obs_id*" ]; then
+        >&2 echo "ERROR: input_vis file not found"
+        echo "Job Failed"
+        exit 1
+    fi
 
 fi
 
