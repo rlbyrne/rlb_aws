@@ -43,14 +43,13 @@ do
     v) version=$OPTARG;;		#FHD folder name and case
 		#Example: nb_foo creates folder named fhd_nb_foo
     n) nslots=$OPTARG;;		#Number of slots for grid engine
-    r) run_type=$OPTARG;;		#Options are data or sim
     u) user=$OPTARG;;		#User: options are rlb (default) or nb
     p) uvfits_s3_loc=$OPTARG;;		#Path to uvfits files on S3
     m) metafits_s3_loc=$OPTARG;;		#Path to metafits files on S3
     i) input_vis=$OPTARG;;              #Optional input visibilities for in situ sim
     j) input_eor=$OPTARG;;             #Optional input eor sim for in situ sim
     \?) echo "Unknown option: Accepted flags are -f (obs_file_name), -s (starting_obs), -e (ending obs), -o (output directory), "
-        echo "-b (output bucket on S3), -v (version input for FHD),  -n (number of slots to use), -r (run type (data or simulation)), "
+        echo "-b (output bucket on S3), -v (version input for FHD),  -n (number of slots to use), "
         echo "-u (user), -p (path to uvfits files on S3), -m (path to metafits files on S3)."
         exit 1;;
     :) echo "Missing option argument for input flag"
@@ -125,14 +124,6 @@ if [ -z ${version} ]; then
    exit 1
 fi
 
-if [ -z ${run_type} ]; then
-    run_type='data'
-fi
-if [ ${run_type} != 'data' ] && [ ${run_type} != 'sim' ]; then
-    echo Invalid run type. Options are -r data and -r sim.
-    exit 1
-fi
-
 if [ -z ${user} ]; then
     user='rlb'
 fi
@@ -141,15 +132,10 @@ if [ ${user} != 'rlb' ] && [ ${user} != 'nb' ]; then
     exit 1
 fi
 
-if [ $run_type == 'sim' ]; then
-    versions_script='fhd_sim_versions_rlb'
-else
-    if [ $user == 'nb' ]; then
-        versions_script='nb_eor_firstpass_versions'
-    fi
-    if [ $user == 'rlb' ]; then
-        versions_script='fhd_versions_rlb'
-    fi
+if [ $user == 'nb' ]; then
+    versions_script='nb_eor_firstpass_versions'
+elif [ $user == 'rlb' ]; then
+    versions_script='fhd_versions_rlb'
 fi
 
 #Set typical slots needed for standard FHD firstpass if not set.
