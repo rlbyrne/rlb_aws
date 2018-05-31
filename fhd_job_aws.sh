@@ -125,7 +125,7 @@ if [ ! -z ${input_vis} ]; then
 
     echo Input visibilities from ${input_vis} copied to /uvfits/input_vis/vis_data
 
-    if [ ! -f "/uvfits/input_vis/vis_data/$obs_id*" ]; then
+    if [ ! -f "/uvfits/input_vis/vis_data/${obs_id}_vis_model_XX.sav" ] || [ ! -f "/uvfits/input_vis/vis_data/${obs_id}_vis_model_YY.sav" ]; then
         >&2 echo "ERROR: input_vis file not found"
         echo "Job Failed"
         exit 1
